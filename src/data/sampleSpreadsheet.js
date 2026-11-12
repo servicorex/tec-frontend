@@ -373,7 +373,7 @@ export function generateOverallAttendanceTemplate(
   studentsList = [],
   subjects = [],
   department = "CSE",
-  classSection = "II Year CSE-A",
+  classSection = "IV Year CSE-A",
   period = "October 2026"
 ) {
   const subjectHeaders = subjects.map(s => s.name || s.code);
@@ -386,11 +386,12 @@ export function generateOverallAttendanceTemplate(
       return `"${s.rollNumber}","${s.name}",${subjectValues.join(",")},"85%"`;
     });
   } else {
-    const deptCode = department === 'CSE' ? '05' : department === 'ECE' ? '04' : '05';
+    // Authentic Tirumala Engineering College Roll Numbers pattern
+    const deptCode = department === 'CSE' ? '05' : department === 'ECE' ? '04' : department === 'EEE' ? '02' : department === 'IT' ? '12' : '05';
     rows = [
-      `"23TML${deptCode}01","A. Rahul Kumar",${subjects.map((_, i) => `${85 + (i % 3) * 5}%`).join(",")},"88.3%"`,
-      `"23TML${deptCode}02","K. Snigdha",${subjects.map((_, i) => `${90 + (i % 2) * 5}%`).join(",")},"92.5%"`,
-      `"23TML${deptCode}03","B. Sai Charan",${subjects.map((_, i) => `${72 + (i % 4) * 2}%`).join(",")},"75.0%"`
+      `"23NE1A${deptCode}01","Ch. Naga Sai",${subjects.map((_, i) => `${85 + (i % 3) * 5}%`).join(",")},"88.3%"`,
+      `"23NE1A${deptCode}02","V. Sri Divya",${subjects.map((_, i) => `${90 + (i % 2) * 5}%`).join(",")},"92.5%"`,
+      `"23NE1A${deptCode}03","P. Hemanth Kumar",${subjects.map((_, i) => `${72 + (i % 4) * 2}%`).join(",")},"75.0%"`
     ];
   }
   return [headers.join(","), ...rows].join("\n");
@@ -603,19 +604,19 @@ export function getSampleProblematicOverallCSV(subjects = [], context = {}) {
   const headers = ["Roll Number", "Student Name", ...subjectList.map(s => s.name), "Overall Attendance"];
   
   const roster = context.students && context.students.length > 0 ? context.students : INITIAL_STUDENTS;
-  const firstStudent = roster[0] || { rollNumber: "21TML0501", name: "M. Sai Vardhan" };
+  const firstStudent = roster[0] || { rollNumber: "23NE1A05K3", name: "RangiSetty Veda Venkata Rajeevan" };
 
   return [
     headers.join(","),
     // 1. Valid row
     `"${firstStudent.rollNumber}","${firstStudent.name}",${subjectList.map(() => '88%').join(",")},"88.0%"`,
     // 2. Unknown student roll number
-    `"23TML9999","Unknown Student",${subjectList.map(() => '82%').join(",")},"82.0%"`,
+    `"23NE1A9999","Unknown Student",${subjectList.map(() => '82%').join(",")},"82.0%"`,
     // 3. Out-of-bounds percentage (125%)
     `"${firstStudent.rollNumber}","Duplicate Row with 125%",${subjectList.map((_, i) => i === 0 ? '125%' : '80%').join(",")},"89.0%"`,
     // 4. Negative percentage (-10%)
-    `"21TML0502","Invalid Negative Score",${subjectList.map((_, i) => i === 0 ? '-10%' : '75%').join(",")},"53.8%"`,
+    `"24NE1A0502","Invalid Negative Score",${subjectList.map((_, i) => i === 0 ? '-10%' : '75%').join(",")},"53.8%"`,
     // 5. Condonation / Detention Warning (<65%)
-    `"21TML0503","Low Attendance Student",${subjectList.map(() => '58%').join(",")},"58.0%"`
+    `"24NE1A0503","Low Attendance Student",${subjectList.map(() => '58%').join(",")},"58.0%"`
   ].join("\n");
 }
