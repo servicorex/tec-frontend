@@ -17,51 +17,17 @@ import {
 } from 'lucide-react';
 
 export default function LoginModal() {
-  const { loginModalOpen, setLoginModalOpen, loginModalRole, setLoginModalRole, loginWithCredentials, students = [] } = useAuth();
+  const { loginModalOpen, setLoginModalOpen, loginModalRole, setLoginModalRole, loginWithCredentials } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState(loginModalRole || 'student');
   const [hodBranch, setHodBranch] = useState('CSE');
-  const [studentBranch, setStudentBranch] = useState('CSE');
-  const [studentYear, setStudentYear] = useState('4th Year');
-  const [studentSection, setStudentSection] = useState('Sec A');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showForgotNotice, setShowForgotNotice] = useState(false);
   const [mfaCode, setMfaCode] = useState('');
   const [requireMfa, setRequireMfa] = useState(false);
-
-  const matchingStudents = students.filter(s => {
-    const sBranch = (s.department || s.branch || 'CSE').toUpperCase();
-    const sYr = (s.year || '').replace(' Year', '').trim();
-    const targetYr = studentYear.replace(' Year', '').trim();
-    const sSec = (s.section || 'A').toUpperCase();
-    const targetSec = studentSection.replace('Sec ', '').trim().toUpperCase();
-
-    const branchMatch = sBranch === studentBranch.toUpperCase();
-    const yearMatch = sYr === targetYr || s.year === studentYear;
-    const secMatch = sSec === targetSec;
-    return branchMatch && yearMatch && secMatch;
-  });
-
-  const autoSelectFirstStudent = (branch, year, section) => {
-    const targetYr = year.replace(' Year', '').trim();
-    const targetSec = section.replace('Sec ', '').trim().toUpperCase();
-    const targetBranch = branch.toUpperCase();
-
-    const matches = students.filter(s => {
-      const sBranch = (s.department || s.branch || 'CSE').toUpperCase();
-      const sYr = (s.year || '').replace(' Year', '').trim();
-      const sSec = (s.section || 'A').toUpperCase();
-      return sBranch === targetBranch && (sYr === targetYr || s.year === year) && sSec === targetSec;
-    });
-
-    if (matches.length > 0) {
-      setUsername(matches[0].rollNumber);
-      setPassword(matches[0].rollNumber);
-    }
-  };
 
   useEffect(() => {
     if (loginModalRole) {
@@ -87,9 +53,6 @@ export default function LoginModal() {
     setRequireMfa(false);
 
     if (role === 'student') {
-      setStudentBranch('CSE');
-      setStudentYear('4th Year');
-      setStudentSection('Sec A');
       setUsername('23NE1A05K3');
       setPassword('23NE1A05K3'); // Default initial credential (must change password)
     } else if (role === 'hod') {
@@ -300,108 +263,6 @@ export default function LoginModal() {
                 <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.25rem' }}>
                   HOD session and attendance management will be strictly assigned to this department.
                 </div>
-              </div>
-            )}
-
-            {/* Student Branch, Year, and Section Organization */}
-            {activeTab === 'student' && (
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '1rem', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0a3d78', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    Select Class / Section:
-                  </span>
-                  <span className="badge badge-primary" style={{ fontSize: '0.7rem' }}>
-                    {studentBranch} • {studentYear} • {studentSection}
-                  </span>
-                </div>
-
-                {/* Branch, Year, Section Selectors */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 1fr', gap: '0.5rem' }}>
-                  <div>
-                    <label style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>Branch</label>
-                    <select
-                      className="form-select"
-                      value={studentBranch}
-                      onChange={(e) => {
-                        const b = e.target.value;
-                        setStudentBranch(b);
-                        autoSelectFirstStudent(b, studentYear, studentSection);
-                      }}
-                      style={{ fontSize: '0.8rem', padding: '0.4rem 0.5rem' }}
-                    >
-                      {DEPARTMENTS.map(d => (
-                        <option key={d.id} value={d.id}>{d.id}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>Academic Year</label>
-                    <select
-                      className="form-select"
-                      value={studentYear}
-                      onChange={(e) => {
-                        const y = e.target.value;
-                        setStudentYear(y);
-                        autoSelectFirstStudent(studentBranch, y, studentSection);
-                      }}
-                      style={{ fontSize: '0.8rem', padding: '0.4rem 0.5rem' }}
-                    >
-                      <option value="1st Year">1st Year</option>
-                      <option value="2nd Year">2nd Year</option>
-                      <option value="3rd Year">3rd Year</option>
-                      <option value="4th Year">4th Year</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>Section</label>
-                    <select
-                      className="form-select"
-                      value={studentSection}
-                      onChange={(e) => {
-                        const s = e.target.value;
-                        setStudentSection(s);
-                        autoSelectFirstStudent(studentBranch, studentYear, s);
-                      }}
-                      style={{ fontSize: '0.8rem', padding: '0.4rem 0.5rem' }}
-                    >
-                      <option value="Sec A">Sec A</option>
-                      <option value="Sec B">Sec B</option>
-                      <option value="Sec C">Sec C</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Section Student Quick-Select Dropdown */}
-                {matchingStudents.length > 0 ? (
-                  <div>
-                    <label style={{ fontSize: '0.72rem', color: '#166534', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.3rem' }}>
-                      <GraduationCap size={13} />
-                      Enrolled Scholars ({matchingStudents.length} in this Section):
-                    </label>
-                    <select
-                      className="form-select"
-                      value={username}
-                      onChange={(e) => {
-                        const roll = e.target.value;
-                        setUsername(roll);
-                        setPassword(roll);
-                      }}
-                      style={{ fontSize: '0.82rem', fontWeight: 600, color: '#0e2154', borderColor: '#86efac', background: '#f0fdf4' }}
-                    >
-                      {matchingStudents.map(st => (
-                        <option key={st.rollNumber} value={st.rollNumber}>
-                          {st.rollNumber} — {st.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ) : (
-                  <div style={{ fontSize: '0.73rem', color: '#64748b', background: '#ffffff', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px dashed #cbd5e1' }}>
-                    No students enrolled in <strong>{studentBranch} • {studentYear} • {studentSection}</strong>. You can enter an assigned roll number below or import records via HOD portal.
-                  </div>
-                )}
               </div>
             )}
 

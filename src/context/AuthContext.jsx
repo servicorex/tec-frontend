@@ -741,17 +741,14 @@ export function AuthProvider({ children }) {
     return { success: true };
   };
 
-  // Batch Student Import via Excel / CSV into a specific section (Requirement 4)
+  // Batch Student Import via Excel / CSV into specific branch/year/sem/section (Requirement 4)
   const importStudentsToSection = ({ branch, year, semester, section, newStudents }) => {
     const valid = [];
     const rejected = [];
-    const targetYr = normalizeYear(year);
-    const targetSem = normalizeSemesterCode(semester);
-    const targetSec = (section || "A").trim().toUpperCase();
-    const targetBranch = branch || "CSE";
-
-    // Determine admission year based on academic year
-    const admYear = targetYr === '1st Year' ? '2024' : targetYr === '2nd Year' ? '2023' : targetYr === '3rd Year' ? '2022' : '2021';
+    const fallbackYr = normalizeYear(year);
+    const fallbackSem = normalizeSemesterCode(semester);
+    const fallbackSec = (section || "A").replace(/^Sec(tion)?\s*/i, '').trim().toUpperCase();
+    const fallbackBranch = branch || "CSE";
 
     newStudents.forEach(st => {
       const roll = (st.rollNumber || "").trim().toUpperCase();
@@ -769,17 +766,26 @@ export function AuthProvider({ children }) {
         return;
       }
 
+      // Individual row values with fallback to context
+      const studentBranch = (st.branch || st.department || fallbackBranch).toUpperCase();
+      const studentYear = normalizeYear(st.year || fallbackYr);
+      const studentSemester = normalizeSemesterCode(st.semester || fallbackSem);
+      const studentSection = (st.section || fallbackSec).replace(/^Sec(tion)?\s*/i, '').trim().toUpperCase() || "A";
+
+      // Determine admission year based on academic year
+      const admYear = studentYear === '1st Year' ? '2024' : studentYear === '2nd Year' ? '2023' : studentYear === '3rd Year' ? '2022' : '2021';
+
       valid.push({
         id: `std-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
         rollNumber: roll,
         name,
         shortName: "",
         course: "B.Tech",
-        department: targetBranch,
-        branch: targetBranch,
-        year: targetYr,
-        semester: targetSem,
-        section: targetSec,
+        department: studentBranch,
+        branch: studentBranch,
+        year: studentYear,
+        semester: studentSemester,
+        section: studentSection,
         admissionNumber: `ADM-${admYear}-${roll.slice(-4) || '0001'}`,
         dob: "",
         gender: "Not Specified",

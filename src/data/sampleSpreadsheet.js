@@ -18,7 +18,11 @@ export const ATTENDANCE_COLUMNS = [
 
 export const STUDENT_REGISTRATION_COLUMNS = [
   "Roll Number",
-  "Student Name"
+  "Student Name",
+  "Branch",
+  "Year",
+  "Semester",
+  "Section"
 ];
 
 // Generate standard CSV template for a given section & subject
@@ -33,13 +37,18 @@ export function generateAttendanceTemplate(studentsList = [], department = "CSE"
   return rows.join("\n");
 }
 
-// Generate blank 2-column student registration template for a given academic context
-export function generateStudentRegistrationTemplate(branch = "CSE", year = "IV Year", semester = "VII Semester", section = "A") {
-  const prefix = year === 'I Year' ? '24' : year === 'II Year' ? '23' : year === 'III Year' ? '22' : '21';
+// Generate multi-column student registration template for batch enrollment
+export function generateStudentRegistrationTemplate(branch = "CSE", year = "1st Year", semester = "1-1", section = "A") {
+  const yr = normalizeYear(year);
+  const prefix = yr === '1st Year' ? '24NE1A05' : yr === '2nd Year' ? '23NE1A05' : yr === '3rd Year' ? '22NE1A05' : '21NE1A05';
+  const cleanSec = (section || 'A').replace(/^Sec(tion)?\s*/i, '').trim().toUpperCase();
+  const cleanSem = semester || '1-1';
+
   const sampleRows = [
     STUDENT_REGISTRATION_COLUMNS.join(","),
-    `"${prefix}TML0591","Sample Student 1"`,
-    `"${prefix}TML0592","Sample Student 2"`
+    `"${prefix}01","Ch. Naga Sai","${branch}","${yr}","${cleanSem}","${cleanSec}"`,
+    `"${prefix}02","V. Sri Divya","${branch}","${yr}","${cleanSem}","${cleanSec}"`,
+    `"${prefix}03","P. Hemanth Kumar","${branch}","${yr}","${cleanSem}","${cleanSec}"`
   ];
   return sampleRows.join("\n");
 }
@@ -257,7 +266,7 @@ export function splitCSVLine(line) {
   return result;
 }
 
-// Student Batch Registration CSV Parser & Validator (Simplified 2-Column Format)
+// Student Batch Registration CSV Parser & Validator (Multi-Column Format: Roll, Name, Branch, Year, Semester, Section)
 export function parseAndValidateStudentCSV(csvContent, existingStudents = [], context = {}) {
   const lines = csvContent.trim().split(/\r?\n/).filter(line => line.trim().length > 0);
   if (lines.length < 2) {
@@ -269,6 +278,25 @@ export function parseAndValidateStudentCSV(csvContent, existingStudents = [], co
     };
   }
 
+  // Parse header line to determine column positions dynamically
+  const headerCells = splitCSVLine(lines[0]).map(c => c.replace(/^["']|["']$/g, "").trim().toLowerCase());
+  const colIndex = {
+    roll: headerCells.findIndex(c => c.includes("roll")),
+    name: headerCells.findIndex(c => c.includes("name")),
+    branch: headerCells.findIndex(c => c.includes("branch") || c.includes("dept") || c.includes("department")),
+    year: headerCells.findIndex(c => c.includes("year")),
+    semester: headerCells.findIndex(c => c.includes("sem")),
+    section: headerCells.findIndex(c => c.includes("sec"))
+  };
+
+  // Fallbacks if not recognized by header name
+  const rollIdx = colIndex.roll >= 0 ? colIndex.roll : 0;
+  const nameIdx = colIndex.name >= 0 ? colIndex.name : 1;
+  const branchIdx = colIndex.branch >= 0 ? colIndex.branch : 2;
+  const yearIdx = colIndex.year >= 0 ? colIndex.year : 3;
+  const semIdx = colIndex.semester >= 0 ? colIndex.semester : 4;
+  const secIdx = colIndex.section >= 0 ? colIndex.section : 5;
+
   const seenRolls = new Set();
   const parsedRows = [];
   let validCount = 0;
@@ -279,8 +307,18 @@ export function parseAndValidateStudentCSV(csvContent, existingStudents = [], co
     const cells = splitCSVLine(rawLine);
     const cleanCells = cells.map(c => c.replace(/^["']|["']$/g, "").trim());
 
-    const rollNumber = (cleanCells[0] || "").toUpperCase();
-    const name = cleanCells[1] || "";
+    const rollNumber = (cleanCells[rollIdx] || "").toUpperCase();
+    const name = cleanCells[nameIdx] || "";
+    const rawBranch = cleanCells[branchIdx] || context.branch || context.department || "CSE";
+    const rawYear = cleanCells[yearIdx] || context.year || "1st Year";
+    const rawSem = cleanCells[semIdx] || context.semester || "1-1";
+    const rawSec = cleanCells[secIdx] || context.section || "A";
+
+    // Clean & normalize fields
+    const branch = rawBranch.toUpperCase();
+    const year = normalizeYear(rawYear);
+    const semester = normalizeSemesterCode(rawSem);
+    const section = rawSec.replace(/^Sec(tion)?\s*/i, '').trim().toUpperCase() || "A";
 
     const errors = [];
 
@@ -309,10 +347,11 @@ export function parseAndValidateStudentCSV(csvContent, existingStudents = [], co
       rowNumber: i,
       rollNumber,
       name,
-      department: context.branch || context.department || "CSE",
-      year: context.year || "1st Year",
-      semester: context.semester || "1-1",
-      section: context.section || "A",
+      department: branch,
+      branch: branch,
+      year: year,
+      semester: semester,
+      section: section,
       status: isRowValid ? "VALID" : "REJECTED",
       errors
     });

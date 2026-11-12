@@ -387,7 +387,7 @@ export default function HODStudentsAndClasses() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast(`Template downloaded for ${selectedBranch} ${selectedYear} ${selectedSemester} Sec ${selectedSection}!`, "success");
+    showToast(`Multi-column template downloaded with pre-built schema!`, "success");
   };
 
   const handleProcessCsvText = (filename, content) => {
@@ -396,7 +396,7 @@ export default function HODStudentsAndClasses() {
     const parsed = parseAndValidateStudentCSV(content, students, context);
     setCsvResult(parsed);
     if (parsed.isValid) {
-      showToast(`${parsed.summary.validRows} students ready to import into ${selectedBranch} ${selectedYear} Sec ${selectedSection}!`, "success");
+      showToast(`${parsed.summary.validRows} students parsed successfully across designated branch/sections!`, "success");
     } else {
       showToast(`CSV has ${parsed.summary.rejectedRows} issues needing correction before import.`, "warning");
     }
@@ -413,11 +413,11 @@ export default function HODStudentsAndClasses() {
   const handleLoadSampleCsv = () => {
     const yr = normalizeYear(selectedYear);
     const prefix = yr === '1st Year' ? '24NE1A05' : yr === '2nd Year' ? '23NE1A05' : yr === '3rd Year' ? '22NE1A05' : '21NE1A05';
-    const sample = `Roll Number,Student Name
-"${prefix}93","Ch. Naga Sai"
-"${prefix}94","V. Sri Divya"
-"${prefix}95","P. Hemanth Kumar"`;
-    handleProcessCsvText(`Sample_Enrollment_${selectedBranch}_${selectedYear.replace(/\s+/g, '')}_Sec${selectedSection}.csv`, sample);
+    const sample = `Roll Number,Student Name,Branch,Year,Semester,Section
+"${prefix}93","Ch. Naga Sai","${selectedBranch}","${yr}","${selectedSemester}","A"
+"${prefix}94","V. Sri Divya","${selectedBranch}","${yr}","${selectedSemester}","B"
+"${prefix}95","P. Hemanth Kumar","${selectedBranch}","${yr}","${selectedSemester}","${selectedSection}"`;
+    handleProcessCsvText(`Sample_Enrollment_${selectedBranch}_${selectedYear.replace(/\s+/g, '')}_MultiSection.csv`, sample);
   };
 
   const handleConfirmBatchImport = () => {
@@ -1604,13 +1604,13 @@ export default function HODStudentsAndClasses() {
             <div className="modal-body" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               
               <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '0.85rem 1rem', borderRadius: '8px', fontSize: '0.82rem', color: '#166534' }}>
-                <strong>Section Assignment:</strong> All imported students will be registered into <strong>{selectedBranch} — {selectedYear} (Semester {selectedSemester}) Section {selectedSection}</strong>. Duplicate roll numbers will be automatically flagged and rejected.
+                <strong>Dynamic Section Routing:</strong> Students in the CSV are automatically assigned to their respective <strong>Branch, Academic Year, Semester, and Section</strong> specified per row. If columns are omitted, defaults fall back to the currently active view (<strong>{selectedBranch} — {selectedYear} ({selectedSemester}) Sec {selectedSection}</strong>). Duplicate roll numbers will be automatically flagged and rejected.
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', padding: '0.75rem 1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 <div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0e2154' }}>Official 2-Column Enrollment Template</div>
-                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Download pre-formatted columns (Roll Number, Student Name only)</div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0e2154' }}>Official Multi-Column Enrollment Template</div>
+                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Includes Roll Number, Student Name, Branch, Year, Semester, Section</div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button 
@@ -1627,7 +1627,7 @@ export default function HODStudentsAndClasses() {
                     className="btn btn-sm btn-primary"
                     style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
                   >
-                    <Sparkles size={14} /> Load 3 Demo Students
+                    <Sparkles size={14} /> Load Demo Multi-Section Batch
                   </button>
                 </div>
               </div>
@@ -1638,7 +1638,7 @@ export default function HODStudentsAndClasses() {
                   Select or drag a CSV file with student records
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.75rem' }}>
-                  Contains only 2 columns: Roll Number, Student Name
+                  Supported columns: Roll Number, Student Name, Branch, Year, Semester, Section
                 </div>
                 <input 
                   type="file" 
@@ -1687,7 +1687,9 @@ export default function HODStudentsAndClasses() {
                           <th>Row</th>
                           <th>Roll Number</th>
                           <th>Student Name</th>
-                          <th>Target Section</th>
+                          <th>Branch</th>
+                          <th>Year / Sem</th>
+                          <th>Section</th>
                           <th>Status</th>
                           <th>Remarks / Validation</th>
                         </tr>
@@ -1700,7 +1702,9 @@ export default function HODStudentsAndClasses() {
                               <td>{row.rowNumber}</td>
                               <td><strong style={{ color: '#1d4ed8' }}>{row.rollNumber || '—'}</strong></td>
                               <td>{row.name || '—'}</td>
-                              <td>{selectedBranch} {selectedYear} ({selectedSemester}) Sec {selectedSection}</td>
+                              <td><span className="badge badge-info" style={{ fontSize: '0.7rem' }}>{row.branch || row.department}</span></td>
+                              <td>{row.year} ({row.semester})</td>
+                              <td><strong>Sec {row.section}</strong></td>
                               <td>
                                 {row.status === 'VALID' ? (
                                   <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>Valid</span>
