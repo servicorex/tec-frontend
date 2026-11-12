@@ -1,10 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { DEPARTMENTS } from '../../data/mockData';
-import { UserCheck, Mail, Phone, Building2, CheckCircle2 } from 'lucide-react';
+import { UserCheck, Mail, Phone, Building2, CheckCircle2, UserPlus, KeyRound, X, ShieldAlert } from 'lucide-react';
 
 export default function PrincipalHODManagement() {
-  const { showToast, students = [], facultyList = [] } = useAuth();
+  const { showToast, students = [], facultyList = [], departments = [], assignOrUpdateHOD } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDeptForEdit, setSelectedDeptForEdit] = useState(null);
+  const [formData, setFormData] = useState({
+    departmentId: 'CSE',
+    hodName: '',
+    hodEmail: '',
+    initialPassword: ''
+  });
+
+  const handleOpenAssignModal = (dept = null) => {
+    if (dept) {
+      setSelectedDeptForEdit(dept);
+      setFormData({
+        departmentId: dept.id,
+        hodName: dept.hod,
+        hodEmail: dept.hodEmail,
+        initialPassword: `HOD_${dept.id}#2026`
+      });
+    } else {
+      setSelectedDeptForEdit(null);
+      setFormData({
+        departmentId: departments[0]?.id || 'CSE',
+        hodName: '',
+        hodEmail: '',
+        initialPassword: ''
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSaveHOD = async (e) => {
+    e.preventDefault();
+    if (!formData.hodName.trim() || !formData.hodEmail.trim()) {
+      showToast("Please provide both HOD name and institutional email.", "warning");
+      return;
+    }
+
+    await assignOrUpdateHOD(formData);
+    setIsModalOpen(false);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
@@ -19,14 +58,22 @@ export default function PrincipalHODManagement() {
             Heads of Department (HOD) Directory & Performance
           </h2>
           <p style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '0.2rem' }}>
-            Direct leadership contacts and departmental compliance governance.
+            Direct leadership contacts, departmental compliance governance, and HOD authority provisioning.
           </p>
         </div>
+
+        <button 
+          onClick={() => handleOpenAssignModal()}
+          className="btn btn-primary"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+        >
+          <UserPlus size={16} /> Provision / Reassign HOD
+        </button>
       </div>
 
       {/* HOD Cards Grid */}
       <div className="grid-3">
-        {DEPARTMENTS.map(dept => (
+        {departments.map(dept => (
           <div key={dept.id} className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
@@ -59,17 +106,125 @@ export default function PrincipalHODManagement() {
 
             <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
               <span style={{ color: '#059669', fontWeight: 700 }}>Avg Attendance: {dept.avgAttendance}%</span>
-              <button 
-                onClick={() => showToast(`Initiated direct correspondence with ${dept.hod}`, "info")}
-                className="btn btn-outline btn-sm"
-                style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem' }}
-              >
-                Contact HOD
-              </button>
+              <div style={{ display: 'flex', gap: '0.35rem' }}>
+                <button 
+                  onClick={() => handleOpenAssignModal(dept)}
+                  className="btn btn-primary btn-sm"
+                  style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem' }}
+                >
+                  Edit / Reassign
+                </button>
+                <button 
+                  onClick={() => showToast(`Initiated correspondence with ${dept.hod} (${dept.hodEmail})`, "info")}
+                  className="btn btn-outline btn-sm"
+                  style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem' }}
+                >
+                  Contact
+                </button>
+              </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* MODAL: PROVISION / REASSIGN HOD */}
+      {isModalOpen && (
+        <div className="modal-backdrop" onClick={() => setIsModalOpen(false)}>
+          <div className="modal-content" style={{ maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <KeyRound size={20} style={{ color: '#0e2154' }} />
+                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>
+                  {selectedDeptForEdit ? `Reassign HOD for ${selectedDeptForEdit.id}` : 'Provision New HOD Assignment'}
+                </h3>
+              </div>
+              <button className="btn-icon" onClick={() => setIsModalOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveHOD}>
+              <div className="modal-body" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '0.75rem', borderRadius: '8px', fontSize: '0.8rem', color: '#166534' }}>
+                  <strong>Authority Transfer:</strong> Assigning a new HOD automatically grants them full departmental administrative rights over class rosters, student enrollments, and attendance validation.
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Department / Branch</label>
+                  <select 
+                    className="form-select"
+                    value={formData.departmentId}
+                    onChange={e => {
+                      const d = e.target.value;
+                      setFormData(prev => ({
+                        ...prev,
+                        departmentId: d,
+                        hodEmail: prev.hodEmail || `hod.${d.toLowerCase()}@tecnrt.org`,
+                        initialPassword: prev.initialPassword || `HOD_${d}#2026`
+                      }));
+                    }}
+                    disabled={!!selectedDeptForEdit}
+                  >
+                    {departments.map(d => (
+                      <option key={d.id} value={d.id}>{d.id} — {d.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">HOD Full Name & Title</label>
+                  <input 
+                    type="text" 
+                    className="form-input"
+                    required
+                    placeholder="e.g. Dr. K. Srinivasa Rao"
+                    value={formData.hodName}
+                    onChange={e => setFormData({ ...formData, hodName: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Official Institutional Email (Login Username)</label>
+                  <input 
+                    type="email" 
+                    className="form-input"
+                    required
+                    placeholder="e.g. hod.cse@tecnrt.org"
+                    value={formData.hodEmail}
+                    onChange={e => setFormData({ ...formData, hodEmail: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Initial Password / Security Key</label>
+                  <input 
+                    type="text" 
+                    className="form-input"
+                    required
+                    placeholder="e.g. HOD_CSE#2026"
+                    value={formData.initialPassword}
+                    onChange={e => setFormData({ ...formData, initialPassword: e.target.value })}
+                  />
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.25rem' }}>
+                    The newly appointed HOD will be prompted to verify and retain or update their security key upon first login.
+                  </div>
+                </div>
+
+              </div>
+
+              <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', padding: '1rem 1.25rem', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setIsModalOpen(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Save & Provision HOD
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

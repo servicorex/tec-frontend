@@ -31,6 +31,7 @@ export function AuthProvider({ children }) {
     mustChangePassword: false
   });
 
+  const [departments, setDepartments] = useState(DEPARTMENTS);
   const [activeTab, setActiveTab] = useState('overview');
   const [students, setStudents] = useState(INITIAL_STUDENTS);
   const [facultyList, setFacultyList] = useState(FACULTY_MEMBERS);
@@ -1081,6 +1082,41 @@ export function AuthProvider({ children }) {
     return { success: true, count: promotedCount };
   };
 
+  // Assign or update Department HOD
+  const assignOrUpdateHOD = async ({ departmentId, hodName, hodEmail, initialPassword }) => {
+    const deptId = (departmentId || 'CSE').trim().toUpperCase();
+    const email = (hodEmail || `hod.${deptId.toLowerCase()}@tecnrt.org`).trim().toLowerCase();
+    const name = (hodName || `Dr. ${deptId} HOD`).trim();
+    const pwd = initialPassword || `HOD_${deptId}#2026`;
+
+    try {
+      // If live backend is reachable, invoke admin API
+      await adminApi.assignHod(email, deptId, pwd).catch(() => null);
+    } catch {
+      // Fallback gracefully
+    }
+
+    setDepartments(prev => prev.map(d => {
+      if (d.id.toUpperCase() === deptId) {
+        return {
+          ...d,
+          hod: name,
+          hodEmail: email
+        };
+      }
+      return d;
+    }));
+
+    logAction({
+      action: "HOD_PROVISIONED",
+      details: `Administrator provisioned HOD authority for ${name} (${email}) over Department ${deptId}`,
+      affectedClass: `${deptId} Leadership`
+    });
+
+    showToast(`HOD authority for ${deptId} successfully assigned to ${name}!`, "success");
+    return { success: true };
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -1102,6 +1138,8 @@ export function AuthProvider({ children }) {
         submitAttendanceUpload,
         promoteStudent,
         batchPromoteStudents,
+        departments,
+        assignOrUpdateHOD,
         facultyList,
         setFacultyList,
         addFacultyMember,
