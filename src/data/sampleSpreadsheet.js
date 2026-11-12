@@ -1,5 +1,5 @@
 // Attendance Spreadsheet Helpers, Template Generator, and Validation Engine (PRD Section 6)
-import { INITIAL_STUDENTS } from './mockData';
+import { INITIAL_STUDENTS, normalizeYear, normalizeSemesterCode } from './mockData.js';
 
 export const ATTENDANCE_COLUMNS = [
   "Student Roll Number",
