@@ -1,8 +1,10 @@
 import React from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { DEPARTMENTS } from '../../data/mockData';
 import { Percent, CheckCircle2, AlertTriangle, Download, Printer } from 'lucide-react';
 
 export default function PrincipalCollegeWideAttendance() {
+  const { students = [], facultyList = [] } = useAuth();
   const overallCollegeAvg = 85.2;
 
   return (
@@ -65,7 +67,9 @@ export default function PrincipalCollegeWideAttendance() {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b', marginTop: '0.4rem' }}>
                   <span>HOD: {dept.hod}</span>
-                  <span>Enrolled: {dept.studentsCount} Students • {dept.facultyCount} Faculty</span>
+                  <span>
+                    Enrolled: {students.filter(s => (s.department || s.branch || '').toUpperCase() === dept.id.toUpperCase()).length} Students • {facultyList.filter(f => (f.department || '').toUpperCase() === dept.id.toUpperCase()).length} Faculty
+                  </span>
                 </div>
               </div>
             );

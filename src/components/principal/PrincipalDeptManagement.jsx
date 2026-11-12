@@ -94,11 +94,15 @@ export default function PrincipalDeptManagement() {
             <div className="modal-body">
               <div style={{ background: '#f8fafc', padding: '1.25rem', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', textAlign: 'center', marginBottom: '1.5rem' }}>
                 <div>
-                  <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1d4ed8' }}>{selectedDept.studentsCount}</div>
+                  <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1d4ed8' }}>
+                    {students.filter(s => (s.department || s.branch || '').toUpperCase() === selectedDept.id.toUpperCase()).length}
+                  </div>
                   <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Scholars Enrolled</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#059669' }}>{selectedDept.facultyCount}</div>
+                  <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#059669' }}>
+                    {facultyList.filter(f => (f.department || '').toUpperCase() === selectedDept.id.toUpperCase()).length}
+                  </div>
                   <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Faculty Headcount</div>
                 </div>
                 <div>
