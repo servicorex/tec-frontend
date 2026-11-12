@@ -87,6 +87,7 @@ export const hodApi = {
 export const adminApi = {
   getOverview: () => apiClient.get('/admin/overview'),
   getAuditLogs: (page = 0, size = 50) => apiClient.get(`/admin/audit-logs?page=${page}&size=${size}`),
-  assignHod: (email, departmentId, initialPassword) => apiClient.post('/admin/hod', { email, departmentId, initialPassword })
+  assignHod: (email, departmentId, initialPassword) => apiClient.post('/admin/hod', { email, departmentId, initialPassword }),
+  resetUserPassword: (username, newPassword) => apiClient.post('/admin/reset-password', { username, newPassword })
 };
 

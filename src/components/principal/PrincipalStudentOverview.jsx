@@ -1,15 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { GraduationCap, Search, Filter, Eye, X, Building2, Calendar, Layers } from 'lucide-react';
+import { GraduationCap, Search, Filter, Eye, X, Building2, Calendar, Layers, Key } from 'lucide-react';
 import { normalizeYear, normalizeSemesterCode } from '../../data/mockData';
 
 export default function PrincipalStudentOverview() {
-  const { students } = useAuth();
+  const { students, adminForcedPasswordReset } = useAuth();
   const [selectedDept, setSelectedDept] = useState('All');
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedSection, setSelectedSection] = useState('All');
   const [search, setSearch] = useState('');
   const [activeStudentModal, setActiveStudentModal] = useState(null);
+  const [resetModalStudent, setResetModalStudent] = useState(null);
+  const [resetPasswordValue, setResetPasswordValue] = useState('');
 
   const academicYears = ['All', '1st Year', '2nd Year', '3rd Year', '4th Year'];
   const departmentsList = ['All', 'CSE', 'AIML', 'AIDS', 'IT', 'ECE', 'EEE'];
@@ -178,13 +180,26 @@ export default function PrincipalStudentOverview() {
                     </span>
                   </td>
                   <td>
-                    <button 
-                      onClick={() => setActiveStudentModal(s)}
-                      className="btn btn-outline btn-sm"
-                      style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem' }}
-                    >
-                      <Eye size={12} /> View File
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                      <button 
+                        onClick={() => {
+                          setResetModalStudent(s);
+                          setResetPasswordValue(s.rollNumber);
+                        }}
+                        className="btn btn-outline btn-sm"
+                        title="Reset Student Password directly"
+                        style={{ fontSize: '0.72rem', padding: '0.2rem 0.45rem', borderColor: '#f59e0b', color: '#d97706', display: 'flex', alignItems: 'center', gap: '0.2rem' }}
+                      >
+                        <Key size={11} /> Reset Pass
+                      </button>
+                      <button 
+                        onClick={() => setActiveStudentModal(s)}
+                        className="btn btn-outline btn-sm"
+                        style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem' }}
+                      >
+                        <Eye size={12} /> View File
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -226,9 +241,77 @@ export default function PrincipalStudentOverview() {
               </div>
             </div>
 
-            <div className="modal-footer">
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <button 
+                onClick={() => {
+                  const target = activeStudentModal;
+                  setActiveStudentModal(null);
+                  setResetModalStudent(target);
+                  setResetPasswordValue(target.rollNumber);
+                }} 
+                className="btn btn-outline"
+                style={{ borderColor: '#f59e0b', color: '#d97706', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+              >
+                <Key size={13} /> Reset Password
+              </button>
               <button onClick={() => setActiveStudentModal(null)} className="btn btn-primary">Close File</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Reset Student Password Modal */}
+      {resetModalStudent && (
+        <div className="modal-backdrop" onClick={() => setResetModalStudent(null)}>
+          <div className="modal-dialog" style={{ maxWidth: '440px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Key size={18} style={{ color: '#d97706' }} />
+                <h3 style={{ margin: 0, fontSize: '1.05rem' }}>
+                  Reset Student Password
+                </h3>
+              </div>
+              <button className="btn-icon" onClick={() => setResetModalStudent(null)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              await adminForcedPasswordReset(resetModalStudent.rollNumber, resetPasswordValue);
+              setResetModalStudent(null);
+            }}>
+              <div className="modal-body" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.75rem', borderRadius: '8px', fontSize: '0.8rem', color: '#92400e' }}>
+                  <strong>Administrator Override:</strong> Directly set a new password for student <strong>{resetModalStudent.name}</strong> (Roll: <code>{resetModalStudent.rollNumber}</code>). No prior password required.
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">New Password</label>
+                  <input 
+                    type="text" 
+                    className="form-input"
+                    required
+                    minLength={6}
+                    value={resetPasswordValue}
+                    onChange={e => setResetPasswordValue(e.target.value)}
+                    placeholder="Enter new student password"
+                  />
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.25rem' }}>
+                    Default initial credentials can be set to the student's roll number (e.g., <code>{resetModalStudent.rollNumber}</code>).
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', padding: '1rem 1.25rem', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setResetModalStudent(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary" style={{ background: '#d97706', borderColor: '#d97706' }}>
+                  Forcibly Update Password
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

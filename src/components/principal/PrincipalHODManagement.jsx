@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { UserCheck, Mail, Phone, Building2, CheckCircle2, UserPlus, KeyRound, X, ShieldAlert } from 'lucide-react';
+import { UserCheck, Mail, Phone, Building2, CheckCircle2, UserPlus, KeyRound, X, ShieldAlert, Key } from 'lucide-react';
 
 export default function PrincipalHODManagement() {
-  const { showToast, students = [], facultyList = [], departments = [], assignOrUpdateHOD } = useAuth();
+  const { showToast, students = [], facultyList = [], departments = [], assignOrUpdateHOD, adminForcedPasswordReset } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDeptForEdit, setSelectedDeptForEdit] = useState(null);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [resetTargetUser, setResetTargetUser] = useState(null);
+  const [newPasswordInput, setNewPasswordInput] = useState('');
   const [formData, setFormData] = useState({
     departmentId: 'CSE',
     hodName: '',
@@ -43,6 +46,20 @@ export default function PrincipalHODManagement() {
 
     await assignOrUpdateHOD(formData);
     setIsModalOpen(false);
+  };
+
+  const handleOpenResetModal = (dept) => {
+    setResetTargetUser(dept);
+    setNewPasswordInput(`HOD_${dept.id}#2026`);
+    setIsResetModalOpen(true);
+  };
+
+  const handleConfirmReset = async (e) => {
+    e.preventDefault();
+    if (!resetTargetUser || !newPasswordInput.trim()) return;
+    await adminForcedPasswordReset(resetTargetUser.hodEmail, newPasswordInput.trim());
+    setIsResetModalOpen(false);
+    setResetTargetUser(null);
   };
 
   return (
@@ -104,9 +121,17 @@ export default function PrincipalHODManagement() {
               </div>
             </div>
 
-            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
+            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <span style={{ color: '#059669', fontWeight: 700 }}>Avg Attendance: {dept.avgAttendance}%</span>
               <div style={{ display: 'flex', gap: '0.35rem' }}>
+                <button 
+                  onClick={() => handleOpenResetModal(dept)}
+                  className="btn btn-outline btn-sm"
+                  title="Direct password reset without old credentials"
+                  style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem', display: 'flex', alignItems: 'center', gap: '0.2rem', borderColor: '#f59e0b', color: '#d97706' }}
+                >
+                  <Key size={11} /> Reset Key
+                </button>
                 <button 
                   onClick={() => handleOpenAssignModal(dept)}
                   className="btn btn-primary btn-sm"
@@ -219,6 +244,58 @@ export default function PrincipalHODManagement() {
                 </button>
                 <button type="submit" className="btn btn-primary">
                   Save & Provision HOD
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: DIRECT PASSWORD RESET */}
+      {isResetModalOpen && resetTargetUser && (
+        <div className="modal-backdrop" onClick={() => setIsResetModalOpen(false)}>
+          <div className="modal-content" style={{ maxWidth: '440px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Key size={18} style={{ color: '#d97706' }} />
+                <h3 style={{ margin: 0, fontSize: '1.05rem' }}>
+                  Reset HOD Security Key
+                </h3>
+              </div>
+              <button className="btn-icon" onClick={() => setIsResetModalOpen(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmReset}>
+              <div className="modal-body" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.75rem', borderRadius: '8px', fontSize: '0.8rem', color: '#92400e' }}>
+                  <strong>Administrator Override:</strong> You can set a new security key for <strong>{resetTargetUser.hod}</strong> (<code>{resetTargetUser.hodEmail}</code>) directly without knowing their current password.
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">New Password / Security Key</label>
+                  <input 
+                    type="text" 
+                    className="form-input"
+                    required
+                    minLength={6}
+                    value={newPasswordInput}
+                    onChange={e => setNewPasswordInput(e.target.value)}
+                    placeholder="Enter new password"
+                  />
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.25rem' }}>
+                    Recommended format: <code>HOD_{resetTargetUser.id}#2026</code>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', padding: '1rem 1.25rem', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setIsResetModalOpen(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary" style={{ background: '#d97706', borderColor: '#d97706' }}>
+                  Forcibly Update Password
                 </button>
               </div>
             </form>
