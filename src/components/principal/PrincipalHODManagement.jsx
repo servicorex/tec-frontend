@@ -155,11 +155,11 @@ export default function PrincipalHODManagement() {
       {/* MODAL: PROVISION / REASSIGN HOD */}
       {isModalOpen && (
         <div className="modal-backdrop" onClick={() => setIsModalOpen(false)}>
-          <div className="modal-content" style={{ maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
+          <div className="modal-dialog" style={{ maxWidth: '480px', background: '#ffffff' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <KeyRound size={20} style={{ color: '#0e2154' }} />
-                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0e2154' }}>
                   {selectedDeptForEdit ? `Reassign HOD for ${selectedDeptForEdit.id}` : 'Provision New HOD Assignment'}
                 </h3>
               </div>
@@ -169,7 +169,7 @@ export default function PrincipalHODManagement() {
             </div>
 
             <form onSubmit={handleSaveHOD}>
-              <div className="modal-body" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="modal-body" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: '#ffffff' }}>
                 
                 <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '0.75rem', borderRadius: '8px', fontSize: '0.8rem', color: '#166534' }}>
                   <strong>Authority Transfer:</strong> Assigning a new HOD automatically grants them full departmental administrative rights over class rosters, student enrollments, and attendance validation.
@@ -254,11 +254,11 @@ export default function PrincipalHODManagement() {
       {/* MODAL 2: DIRECT PASSWORD RESET */}
       {isResetModalOpen && resetTargetUser && (
         <div className="modal-backdrop" onClick={() => setIsResetModalOpen(false)}>
-          <div className="modal-content" style={{ maxWidth: '440px' }} onClick={e => e.stopPropagation()}>
+          <div className="modal-dialog" style={{ maxWidth: '440px', background: '#ffffff' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Key size={18} style={{ color: '#d97706' }} />
-                <h3 style={{ margin: 0, fontSize: '1.05rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', color: '#0e2154' }}>
                   Reset HOD Security Key
                 </h3>
               </div>
@@ -268,7 +268,7 @@ export default function PrincipalHODManagement() {
             </div>
 
             <form onSubmit={handleConfirmReset}>
-              <div className="modal-body" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="modal-body" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: '#ffffff' }}>
                 <div style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.75rem', borderRadius: '8px', fontSize: '0.8rem', color: '#92400e' }}>
                   <strong>Administrator Override:</strong> You can set a new security key for <strong>{resetTargetUser.hod}</strong> (<code>{resetTargetUser.hodEmail}</code>) directly without knowing their current password.
                 </div>
