@@ -4,11 +4,12 @@ import { FACULTY_MEMBERS, DEPARTMENTS } from '../../data/mockData';
 import { Users, Search, Filter, Mail, Phone, BookOpen } from 'lucide-react';
 
 export default function PrincipalFacultyOverview() {
-  const { facultyList = [] } = useAuth();
+  const { facultyList = [], departments = [] } = useAuth();
   const [selectedDept, setSelectedDept] = useState('All');
   const [search, setSearch] = useState('');
 
   const activeFacultyList = facultyList.length > 0 ? facultyList : FACULTY_MEMBERS;
+  const deptList = departments.length > 0 ? departments.map(d => d.id) : ['CSE', 'ECE', 'EEE', 'IT'];
 
   const filtered = activeFacultyList.filter(f => {
     const matchesDept = selectedDept === 'All' || f.department === selectedDept;
@@ -50,7 +51,7 @@ export default function PrincipalFacultyOverview() {
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {['All', 'CSE', 'ECE', 'EEE', 'IT'].map(dept => (
+          {['All', ...deptList].map(dept => (
             <button
               key={dept}
               onClick={() => setSelectedDept(dept)}

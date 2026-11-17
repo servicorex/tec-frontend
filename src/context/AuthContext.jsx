@@ -102,7 +102,7 @@ export function AuthProvider({ children }) {
       showToast(`Logged in as Student: ${student.name} (${student.rollNumber})`, "success");
     } else if (role === 'hod') {
       const branchId = branch || 'CSE';
-      const dept = DEPARTMENTS.find(d => d.id === branchId) || DEPARTMENTS.find(d => d.id === 'CSE') || DEPARTMENTS[0];
+      const dept = departments.find(d => d.id === branchId) || departments.find(d => d.id === 'CSE') || departments[0] || DEPARTMENTS[0];
       setCurrentUser({
         role: 'hod',
         isAuthenticated: true,
@@ -166,7 +166,7 @@ export function AuthProvider({ children }) {
           return { success: true, mustChange };
         } else if (backendRole === 'hod') {
           const deptId = res.user.departmentId || branch || 'CSE';
-          const dept = DEPARTMENTS.find(d => d.id === deptId) || DEPARTMENTS[0];
+          const dept = departments.find(d => d.id === deptId) || departments[0] || DEPARTMENTS[0];
           setCurrentUser({
             role: 'hod',
             isAuthenticated: true,
@@ -254,7 +254,7 @@ export function AuthProvider({ children }) {
 
     if (role === 'hod') {
       const branchId = branch || 'CSE';
-      const dept = DEPARTMENTS.find(d => d.id === branchId) || DEPARTMENTS.find(d => d.id === 'CSE') || DEPARTMENTS[0];
+      const dept = departments.find(d => d.id === branchId) || departments.find(d => d.id === 'CSE') || departments[0] || DEPARTMENTS[0];
       setCurrentUser({
         role: 'hod',
         isAuthenticated: true,
@@ -593,6 +593,29 @@ export function AuthProvider({ children }) {
             totalAbsent = totalHeld - totalAttended;
           }
 
+          // Build or update semester-specific attendance record
+          const targetSem = normalizeSemesterCode(context.semester || student.semester || '1-1');
+          const currentSemAttendance = student.semesterAttendance || {};
+          const existingSemRecord = currentSemAttendance[targetSem] || {};
+          const updatedSemRecord = {
+            ...existingSemRecord,
+            conducted: totalHeld || 240,
+            attended: totalAttended || 212,
+            absent: totalAbsent ?? ((totalHeld || 240) - (totalAttended || 212)),
+            percentage: typeof updatedPct === 'number' ? updatedPct.toFixed(2) : String(updatedPct),
+            monthlyAttendance: existingSemRecord.monthlyAttendance && existingSemRecord.monthlyAttendance.length > 0
+              ? existingSemRecord.monthlyAttendance
+              : [
+                  {
+                    month: context.period || "October 2026",
+                    classesConducted: totalHeld || 240,
+                    classesAttended: totalAttended || 212,
+                    classesAbsent: totalAbsent ?? ((totalHeld || 240) - (totalAttended || 212)),
+                    attendancePercentage: typeof updatedPct === 'number' ? updatedPct.toFixed(2) : String(updatedPct)
+                  }
+                ]
+          };
+
           return {
             ...student,
             totalClassesHeld: totalHeld || 240,
@@ -600,6 +623,10 @@ export function AuthProvider({ children }) {
             totalClassesAbsent: totalAbsent ?? ((totalHeld || 240) - (totalAttended || 212)),
             attendanceOverall: updatedPct,
             subjectAttendance: subjectAttendance || student.subjectAttendance,
+            semesterAttendance: {
+              ...currentSemAttendance,
+              [targetSem]: updatedSemRecord
+            },
             status
           };
         }
@@ -638,6 +665,17 @@ export function AuthProvider({ children }) {
             totalAbsent = totalHeld - totalAttended;
           }
 
+          const targetSem = normalizeSemesterCode(context.semester || curr.profile.semester || '1-1');
+          const currentSemAttendance = curr.profile.semesterAttendance || {};
+          const existingSemRecord = currentSemAttendance[targetSem] || {};
+          const updatedSemRecord = {
+            ...existingSemRecord,
+            conducted: totalHeld || 240,
+            attended: totalAttended || 212,
+            absent: totalAbsent ?? ((totalHeld || 240) - (totalAttended || 212)),
+            percentage: typeof updatedPct === 'number' ? updatedPct.toFixed(2) : String(updatedPct)
+          };
+
           return {
             ...curr,
             profile: {
@@ -647,6 +685,10 @@ export function AuthProvider({ children }) {
               totalClassesAbsent: totalAbsent ?? ((totalHeld || 240) - (totalAttended || 212)),
               attendanceOverall: updatedPct,
               subjectAttendance: subjectAttendance || curr.profile.subjectAttendance,
+              semesterAttendance: {
+                ...currentSemAttendance,
+                [targetSem]: updatedSemRecord
+              },
               status
             }
           };
@@ -834,10 +876,10 @@ export function AuthProvider({ children }) {
       setStudents(prev => [...valid, ...prev]);
       logAction({
         action: "BATCH_STUDENTS_IMPORTED",
-        details: `Imported ${valid.length} students into ${targetYr} ${targetBranch}-${targetSec} (${targetSem})`,
-        affectedClass: `${targetYr} ${targetBranch}-${targetSec}`
+        details: `Imported ${valid.length} students into ${fallbackYr} ${fallbackBranch}-${fallbackSec} (${fallbackSem})`,
+        affectedClass: `${fallbackYr} ${fallbackBranch}-${fallbackSec}`
       });
-      showToast(`Imported ${valid.length} students successfully into ${targetYr} ${targetBranch}-${targetSec} (${targetSem})!`, "success");
+      showToast(`Imported ${valid.length} students successfully into ${fallbackYr} ${fallbackBranch}-${fallbackSec} (${fallbackSem})!`, "success");
     }
 
     if (rejected.length > 0) {
@@ -1106,6 +1148,21 @@ export function AuthProvider({ children }) {
       }
       return d;
     }));
+
+    // If currently logged-in user is this HOD, update active session in real-time
+    setCurrentUser(curr => {
+      if (curr.role === 'hod' && (curr.profile?.department || '').toUpperCase() === deptId) {
+        return {
+          ...curr,
+          profile: {
+            ...curr.profile,
+            name: name,
+            email: email
+          }
+        };
+      }
+      return curr;
+    });
 
     logAction({
       action: "HOD_PROVISIONED",

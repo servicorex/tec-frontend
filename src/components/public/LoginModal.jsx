@@ -17,7 +17,8 @@ import {
 } from 'lucide-react';
 
 export default function LoginModal() {
-  const { loginModalOpen, setLoginModalOpen, loginModalRole, setLoginModalRole, loginWithCredentials } = useAuth();
+  const { loginModalOpen, setLoginModalOpen, loginModalRole, setLoginModalRole, loginWithCredentials, departments = [] } = useAuth();
+  const activeDepartments = departments.length > 0 ? departments : DEPARTMENTS;
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState(loginModalRole || 'student');
@@ -254,7 +255,7 @@ export default function LoginModal() {
                   }}
                   style={{ fontWeight: 600 }}
                 >
-                  {DEPARTMENTS.map(d => (
+                  {activeDepartments.map(d => (
                     <option key={d.id} value={d.id}>
                       {d.id} — {d.name}
                     </option>

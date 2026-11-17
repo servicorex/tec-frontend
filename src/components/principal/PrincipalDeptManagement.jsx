@@ -4,7 +4,8 @@ import { DEPARTMENTS } from '../../data/mockData';
 import { Building2, Users, BookOpen, Percent, Award, ArrowRight, Eye, X } from 'lucide-react';
 
 export default function PrincipalDeptManagement() {
-  const { showToast, students = [], facultyList = [] } = useAuth();
+  const { showToast, students = [], facultyList = [], departments = [] } = useAuth();
+  const activeDepartments = departments.length > 0 ? departments : DEPARTMENTS;
   const [selectedDept, setSelectedDept] = useState(null);
 
   return (
@@ -17,7 +18,7 @@ export default function PrincipalDeptManagement() {
             Institutional Organization
           </span>
           <h2 style={{ fontSize: '1.4rem', color: '#0e2154' }}>
-            Academic Departments Oversight ({DEPARTMENTS.length} Engineering Disciplines)
+            Academic Departments Oversight ({activeDepartments.length} Engineering Disciplines)
           </h2>
           <p style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '0.2rem' }}>
             College-wide oversight of department assignments, student distribution, and academic health.
@@ -41,7 +42,7 @@ export default function PrincipalDeptManagement() {
             </tr>
           </thead>
           <tbody>
-            {DEPARTMENTS.map(dept => {
+            {activeDepartments.map(dept => {
               const enrolledCount = students.filter(s => (s.department || s.branch || '').toUpperCase() === dept.id.toUpperCase()).length;
               const facultyCount = facultyList.filter(f => (f.department || '').toUpperCase() === dept.id.toUpperCase()).length;
               return (

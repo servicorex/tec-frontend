@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { DEPARTMENTS } from '../../data/mockData';
 import { 
   Cpu, 
@@ -19,6 +20,8 @@ import {
 } from 'lucide-react';
 
 export default function DepartmentsSection() {
+  const { departments = [] } = useAuth();
+  const activeDepartments = departments.length > 0 ? departments : DEPARTMENTS;
   const [selectedDept, setSelectedDept] = useState(null);
 
   const getDeptIcon = (id) => {
@@ -55,7 +58,7 @@ export default function DepartmentsSection() {
 
         {/* Department Cards Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
-          {DEPARTMENTS.map(dept => (
+          {activeDepartments.map(dept => (
             <div 
               key={dept.id} 
               className="card"

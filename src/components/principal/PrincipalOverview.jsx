@@ -16,7 +16,8 @@ import {
 } from 'lucide-react';
 
 export default function PrincipalOverview() {
-  const { currentUser, setActiveTab, auditLogs, students = [], facultyList = [] } = useAuth();
+  const { currentUser, setActiveTab, auditLogs, students = [], facultyList = [], departments = [] } = useAuth();
+  const activeDepartments = departments.length > 0 ? departments : DEPARTMENTS;
 
   const totalStudents = students.length;
   const totalFaculty = facultyList.length;
@@ -78,7 +79,7 @@ export default function PrincipalOverview() {
         <StatCard 
           title="Total Student Body"
           value={String(totalStudents)}
-          subtitle={`${DEPARTMENTS.length} Engineering Branches`}
+          subtitle={`${activeDepartments.length} Engineering Branches`}
           icon={GraduationCap}
           color="primary"
           badgeText="Active Scholars"
@@ -88,7 +89,7 @@ export default function PrincipalOverview() {
         <StatCard 
           title="College Faculty Roster"
           value={String(totalFaculty)}
-          subtitle={`Across ${DEPARTMENTS.length} Engineering Depts`}
+          subtitle={`Across ${activeDepartments.length} Engineering Depts`}
           icon={Users}
           color="purple"
           badgeText="Verified Staff"
@@ -134,7 +135,7 @@ export default function PrincipalOverview() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {DEPARTMENTS.slice(0, 5).map(dept => {
+            {activeDepartments.slice(0, 5).map(dept => {
               const count = students.filter(s => (s.department || s.branch || '').toUpperCase() === dept.id.toUpperCase()).length;
               return (
                 <div key={dept.id} style={{ padding: '0.75rem 0.85rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

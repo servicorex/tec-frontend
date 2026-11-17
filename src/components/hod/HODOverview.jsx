@@ -20,11 +20,11 @@ import {
 } from 'lucide-react';
 
 export default function HODOverview() {
-  const { currentUser, students = [], setActiveTab, uploadHistory = [], auditLogs = [], facultyList = [] } = useAuth();
+  const { currentUser, students = [], setActiveTab, uploadHistory = [], auditLogs = [], facultyList = [], departments = [] } = useAuth();
   
   // Requirement 2: HOD Branch strictly based on login context
   const assignedBranch = currentUser?.profile?.department || 'CSE';
-  const deptObj = DEPARTMENTS.find(d => d.id === assignedBranch) || {
+  const deptObj = departments.find(d => d.id === assignedBranch) || DEPARTMENTS.find(d => d.id === assignedBranch) || {
     id: assignedBranch,
     code: assignedBranch,
     name: currentUser?.profile?.departmentName || `${assignedBranch} Department`,

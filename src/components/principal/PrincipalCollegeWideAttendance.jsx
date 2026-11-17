@@ -4,7 +4,7 @@ import { DEPARTMENTS } from '../../data/mockData';
 import { Percent, CheckCircle2, AlertTriangle, Download, Printer } from 'lucide-react';
 
 export default function PrincipalCollegeWideAttendance() {
-  const { students = [], facultyList = [] } = useAuth();
+  const { students = [], facultyList = [], departments = [] } = useAuth();
   const overallCollegeAvg = 85.2;
 
   return (
@@ -41,7 +41,7 @@ export default function PrincipalCollegeWideAttendance() {
         </h3>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {DEPARTMENTS.map(dept => {
+          {(departments.length > 0 ? departments : DEPARTMENTS).map(dept => {
             const isSafe = dept.avgAttendance >= 80;
             return (
               <div key={dept.id} style={{ background: '#f8fafc', padding: '1rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
