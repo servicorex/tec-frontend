@@ -33,7 +33,10 @@ export default function LoginModal() {
   useEffect(() => {
     if (loginModalRole) {
       setActiveTab(loginModalRole);
-      applyDemoCredentials(loginModalRole);
+      setError('');
+      setShowForgotNotice(false);
+      setUsername('');
+      setPassword('');
     }
   }, [loginModalRole, loginModalOpen]);
 
@@ -48,28 +51,13 @@ export default function LoginModal() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [loginModalOpen, setLoginModalOpen]);
 
-  const applyDemoCredentials = (role, branch = hodBranch) => {
-    setError('');
-    setShowForgotNotice(false);
-    setRequireMfa(false);
-
-    if (role === 'student') {
-      setUsername('23NE1A05K3');
-      setPassword('23NE1A05K3'); // Default initial credential (must change password)
-    } else if (role === 'hod') {
-      const b = branch || 'CSE';
-      setUsername(`hod.${b.toLowerCase()}@tecnrt.org`);
-      setPassword(`HOD_${b.toUpperCase()}#2026`);
-    } else if (role === 'principal' || role === 'admin') {
-      setUsername('admin@tecnrt.org');
-      setPassword('Admin#TEC@2026');
-    }
-  };
-
   const handleTabChange = (role) => {
     setActiveTab(role);
     setLoginModalRole(role);
-    applyDemoCredentials(role, hodBranch);
+    setError('');
+    setShowForgotNotice(false);
+    setUsername('');
+    setPassword('');
   };
 
   const handleSubmit = async (e) => {
@@ -250,8 +238,8 @@ export default function LoginModal() {
                   onChange={(e) => {
                     const b = e.target.value;
                     setHodBranch(b);
-                    setUsername(`hod.${b.toLowerCase()}@tecnrt.org`);
-                    setPassword(`HOD_${b.toUpperCase()}#2026`);
+                    setUsername('');
+                    setPassword('');
                   }}
                   style={{ fontWeight: 600 }}
                 >
@@ -277,7 +265,7 @@ export default function LoginModal() {
                 required 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder={activeTab === 'student' ? 'e.g., 23NE1A05K3' : activeTab === 'hod' ? 'e.g., hod.cse@tecnrt.org' : 'e.g., admin@tecnrt.org'}
+                placeholder=""
               />
             </div>
 
@@ -298,7 +286,7 @@ export default function LoginModal() {
                 required 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
+                placeholder=""
               />
             </div>
 
@@ -338,22 +326,6 @@ export default function LoginModal() {
                 </p>
               </div>
             )}
-
-            {/* Quick Demo Pre-fill helper */}
-            <div style={{ background: '#f8fafc', padding: '0.65rem 0.85rem', borderRadius: '6px', border: '1px dashed #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#64748b' }}>
-                <Sparkles size={14} style={{ color: '#f59e0b' }} />
-                <span>Need test credentials?</span>
-              </div>
-              <button 
-                type="button" 
-                onClick={() => applyDemoCredentials(activeTab)}
-                className="btn btn-outline btn-sm"
-                style={{ fontSize: '0.72rem', padding: '0.2rem 0.6rem' }}
-              >
-                Auto-fill Demo
-              </button>
-            </div>
           </div>
 
           {/* Footer Actions */}

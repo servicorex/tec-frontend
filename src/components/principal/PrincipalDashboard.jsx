@@ -2,12 +2,10 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import PortalHeader from '../common/PortalHeader';
 import PrincipalOverview from './PrincipalOverview';
-import PrincipalDeptManagement from './PrincipalDeptManagement';
 import PrincipalHODManagement from './PrincipalHODManagement';
 import PrincipalFacultyOverview from './PrincipalFacultyOverview';
 import PrincipalStudentOverview from './PrincipalStudentOverview';
 import { 
-  Building2, 
   Users, 
   UserCheck, 
   GraduationCap, 
@@ -19,7 +17,6 @@ export default function PrincipalDashboard() {
 
   const navItems = [
     { id: 'college-overview', label: 'College Overview', icon: LayoutDashboard },
-    { id: 'dept-management', label: 'Department Management', icon: Building2 },
     { id: 'hod-management', label: 'HOD Leadership', icon: UserCheck },
     { id: 'faculty-overview', label: 'Faculty Overview', icon: Users },
     { id: 'student-overview', label: 'Student Overview', icon: GraduationCap }
@@ -40,7 +37,7 @@ export default function PrincipalDashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.25rem' }}>
             {navItems.map(item => {
               const Icon = item.icon;
-              const isActive = activeTab === item.id;
+              const isActive = (activeTab === item.id) || (activeTab === 'dept-management' && item.id === 'hod-management');
               return (
                 <button
                   key={item.id}
@@ -72,9 +69,8 @@ export default function PrincipalDashboard() {
 
         {/* Main Dashboard Content Area */}
         <main style={{ flex: 1, minWidth: 0 }}>
-          {activeTab === 'college-overview' && <PrincipalOverview />}
-          {activeTab === 'dept-management' && <PrincipalDeptManagement />}
-          {activeTab === 'hod-management' && <PrincipalHODManagement />}
+          {(activeTab === 'college-overview') && <PrincipalOverview />}
+          {(activeTab === 'hod-management' || activeTab === 'dept-management') && <PrincipalHODManagement />}
           {activeTab === 'faculty-overview' && <PrincipalFacultyOverview />}
           {activeTab === 'student-overview' && <PrincipalStudentOverview />}
         </main>

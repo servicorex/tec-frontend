@@ -143,7 +143,7 @@ export default function AdminLoginPage() {
               required 
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="e.g., admin@tecnrt.org"
+              placeholder=""
               style={{ fontSize: '0.9rem' }}
             />
           </div>
@@ -158,7 +158,7 @@ export default function AdminLoginPage() {
               required 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter administrator password"
+              placeholder=""
               style={{ fontSize: '0.9rem' }}
             />
           </div>

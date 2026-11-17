@@ -27,18 +27,18 @@ export default function PrincipalDeptManagement() {
       </div>
 
       {/* Departments Table */}
-      <div className="table-responsive">
-        <table className="data-table">
+      <div className="table-responsive" style={{ overflowX: 'visible' }}>
+        <table className="data-table" style={{ width: '100%', tableLayout: 'auto' }}>
           <thead>
             <tr>
-              <th>Dept Code</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Dept Code</th>
               <th>Department Name</th>
               <th>Head of Department (HOD)</th>
-              <th>Enrolled Students</th>
-              <th>Faculty Strength</th>
-              <th>Avg Attendance</th>
-              <th>Pass Rate</th>
-              <th>Action</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Enrolled Students</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Faculty Strength</th>
+              <th style={{ whiteSpace: 'nowrap', textAlign: 'center' }}>Avg Attendance</th>
+              <th style={{ whiteSpace: 'nowrap', textAlign: 'center' }}>Pass Rate</th>
+              <th style={{ whiteSpace: 'nowrap', textAlign: 'center' }}>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -47,24 +47,24 @@ export default function PrincipalDeptManagement() {
               const facultyCount = facultyList.filter(f => (f.department || '').toUpperCase() === dept.id.toUpperCase()).length;
               return (
                 <tr key={dept.id}>
-                  <td><strong style={{ color: '#1d4ed8' }}>{dept.code} ({dept.id})</strong></td>
-                  <td><strong>{dept.name}</strong></td>
-                  <td>{dept.hod}</td>
-                  <td>{enrolledCount} Student{enrolledCount !== 1 ? 's' : ''}</td>
-                  <td>{facultyCount} Faculty</td>
-                  <td>
+                  <td style={{ whiteSpace: 'nowrap' }}><strong style={{ color: '#1d4ed8' }}>{dept.code} ({dept.id})</strong></td>
+                  <td style={{ fontWeight: 600 }}>{dept.name}</td>
+                  <td style={{ color: '#334155' }}>{dept.hod}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{enrolledCount} Student{enrolledCount !== 1 ? 's' : ''}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{facultyCount} Faculty</td>
+                  <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                     <strong style={{ color: dept.avgAttendance >= 85 ? '#059669' : '#d97706' }}>
                       {dept.avgAttendance}%
                     </strong>
                   </td>
-                  <td>
+                  <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                     <span style={{ fontWeight: 700, color: '#0f172a' }}>{dept.passRate}%</span>
                   </td>
-                  <td>
+                  <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                     <button 
                       onClick={() => setSelectedDept(dept)}
                       className="btn btn-outline-primary btn-sm"
-                      style={{ fontSize: '0.72rem', padding: '0.25rem 0.6rem' }}
+                      style={{ fontSize: '0.74rem', padding: '0.3rem 0.65rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
                     >
                       <Eye size={13} /> Drill-down
                     </button>

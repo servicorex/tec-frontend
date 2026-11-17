@@ -31,16 +31,115 @@ export function AuthProvider({ children }) {
     mustChangePassword: false
   });
 
-  const [departments, setDepartments] = useState(DEPARTMENTS);
+  // Persistent state helper using localStorage
+  const [departments, setDepartments] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tec_departments');
+      return saved ? JSON.parse(saved) : DEPARTMENTS;
+    } catch {
+      return DEPARTMENTS;
+    }
+  });
+
   const [activeTab, setActiveTab] = useState('overview');
-  const [students, setStudents] = useState(INITIAL_STUDENTS);
-  const [facultyList, setFacultyList] = useState(FACULTY_MEMBERS);
-  const [auditLogs, setAuditLogs] = useState(AUDIT_LOGS);
-  const [uploadHistory, setUploadHistory] = useState(ATTENDANCE_UPLOAD_HISTORY);
-  const [publishedTimetables, setPublishedTimetables] = useState(INITIAL_EXAM_TIMETABLES);
+
+  const [students, setStudents] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tec_students');
+      return saved ? JSON.parse(saved) : INITIAL_STUDENTS;
+    } catch {
+      return INITIAL_STUDENTS;
+    }
+  });
+
+  const [facultyList, setFacultyList] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tec_faculty');
+      return saved ? JSON.parse(saved) : FACULTY_MEMBERS;
+    } catch {
+      return FACULTY_MEMBERS;
+    }
+  });
+
+  const [auditLogs, setAuditLogs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tec_audit_logs');
+      return saved ? JSON.parse(saved) : AUDIT_LOGS;
+    } catch {
+      return AUDIT_LOGS;
+    }
+  });
+
+  const [uploadHistory, setUploadHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tec_upload_history');
+      return saved ? JSON.parse(saved) : ATTENDANCE_UPLOAD_HISTORY;
+    } catch {
+      return ATTENDANCE_UPLOAD_HISTORY;
+    }
+  });
+
+  const [publishedTimetables, setPublishedTimetables] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tec_timetables');
+      return saved ? JSON.parse(saved) : INITIAL_EXAM_TIMETABLES;
+    } catch {
+      return INITIAL_EXAM_TIMETABLES;
+    }
+  });
+
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [loginModalRole, setLoginModalRole] = useState('student');
   const [toasts, setToasts] = useState([]);
+
+  // Auto-persist state changes to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('tec_departments', JSON.stringify(departments));
+    } catch (e) {
+      console.warn("Storage sync error", e);
+    }
+  }, [departments]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('tec_students', JSON.stringify(students));
+    } catch (e) {
+      console.warn("Storage sync error", e);
+    }
+  }, [students]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('tec_faculty', JSON.stringify(facultyList));
+    } catch (e) {
+      console.warn("Storage sync error", e);
+    }
+  }, [facultyList]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('tec_audit_logs', JSON.stringify(auditLogs));
+    } catch (e) {
+      console.warn("Storage sync error", e);
+    }
+  }, [auditLogs]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('tec_upload_history', JSON.stringify(uploadHistory));
+    } catch (e) {
+      console.warn("Storage sync error", e);
+    }
+  }, [uploadHistory]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('tec_timetables', JSON.stringify(publishedTimetables));
+    } catch (e) {
+      console.warn("Storage sync error", e);
+    }
+  }, [publishedTimetables]);
 
   // Toast notification helper
   const showToast = (message, type = 'info', duration = 4000) => {
@@ -255,12 +354,29 @@ export function AuthProvider({ children }) {
     if (role === 'hod') {
       const branchId = branch || 'CSE';
       const dept = departments.find(d => d.id === branchId) || departments.find(d => d.id === 'CSE') || departments[0] || DEPARTMENTS[0];
+      
+      const expectedEmail = (dept.hodEmail || `hod.${dept.id.toLowerCase()}@tecnrt.org`).trim().toLowerCase();
+      const expectedPassword = dept.password || `HOD_${dept.id.toUpperCase()}#2026`;
+
+      const inputEmail = username.trim().toLowerCase();
+      const inputPassword = password.trim();
+
+      if (inputEmail !== expectedEmail && inputEmail !== `hod.${dept.id.toLowerCase()}@tecnrt.org`) {
+        showToast("Invalid HOD email or identifier for this department.", "error");
+        return { success: false, message: "Invalid email." };
+      }
+
+      if (inputPassword !== expectedPassword) {
+        showToast("Invalid HOD password or security key.", "error");
+        return { success: false, message: "Invalid password." };
+      }
+
       setCurrentUser({
         role: 'hod',
         isAuthenticated: true,
         profile: {
           name: dept.hod,
-          email: username.trim() || dept.hodEmail,
+          email: expectedEmail,
           department: dept.id,
           departmentName: dept.name,
           designation: `Head of Department (${dept.id})`
@@ -1143,7 +1259,8 @@ export function AuthProvider({ children }) {
         return {
           ...d,
           hod: name,
-          hodEmail: email
+          hodEmail: email,
+          password: pwd
         };
       }
       return d;

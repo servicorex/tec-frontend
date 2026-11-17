@@ -13,9 +13,9 @@ export default function PrincipalStudentOverview() {
   const [resetModalStudent, setResetModalStudent] = useState(null);
   const [resetPasswordValue, setResetPasswordValue] = useState('');
 
-  const academicYears = ['All', '1st Year', '2nd Year', '3rd Year', '4th Year'];
-  const departmentsList = ['All', 'CSE', 'AIML', 'AIDS', 'IT', 'ECE', 'EEE'];
-  const sectionsList = ['All', 'Sec A', 'Sec B', 'Sec C'];
+  const academicYears = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+  const departmentsList = ['CSE', 'AIML', 'AIDS', 'IT', 'ECE', 'EEE'];
+  const sectionsList = ['Sec A', 'Sec B', 'Sec C'];
 
   const filtered = useMemo(() => {
     return students.filter(s => {
@@ -89,7 +89,7 @@ export default function PrincipalStudentOverview() {
             {departmentsList.map(dept => (
               <button
                 key={dept}
-                onClick={() => setSelectedDept(dept)}
+                onClick={() => setSelectedDept(prev => prev === dept ? 'All' : dept)}
                 className={`btn btn-sm ${selectedDept === dept ? 'btn-primary' : 'btn-outline'}`}
                 style={{ fontSize: '0.78rem', padding: '0.25rem 0.65rem' }}
               >
@@ -108,7 +108,7 @@ export default function PrincipalStudentOverview() {
             {academicYears.map(yr => (
               <button
                 key={yr}
-                onClick={() => setSelectedYear(yr)}
+                onClick={() => setSelectedYear(prev => prev === yr ? 'All' : yr)}
                 className={`btn btn-sm ${selectedYear === yr ? 'btn-primary' : 'btn-outline'}`}
                 style={{ fontSize: '0.78rem', padding: '0.25rem 0.65rem' }}
               >
@@ -127,7 +127,7 @@ export default function PrincipalStudentOverview() {
             {sectionsList.map(sec => (
               <button
                 key={sec}
-                onClick={() => setSelectedSection(sec)}
+                onClick={() => setSelectedSection(prev => prev === sec ? 'All' : sec)}
                 className={`btn btn-sm ${selectedSection === sec ? 'btn-primary' : 'btn-outline'}`}
                 style={{ fontSize: '0.78rem', padding: '0.25rem 0.65rem' }}
               >

@@ -118,48 +118,7 @@ export default function PrincipalOverview() {
       </div>
 
       {/* Cross-Department Comparison Table & Recent Audit Logs */}
-      <div className="grid-2">
-        {/* Department Comparison (PRD 4.4 & 5.4) */}
-        <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-            <div>
-              <h3 style={{ fontSize: '1.1rem', color: '#0f172a' }}>Department Academic Standing</h3>
-              <p style={{ fontSize: '0.78rem', color: '#64748b' }}>Comparative attendance and enrollment metrics</p>
-            </div>
-            <button 
-              onClick={() => setActiveTab('dept-management')}
-              style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}
-            >
-              All Depts <ArrowRight size={14} />
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {activeDepartments.slice(0, 5).map(dept => {
-              const count = students.filter(s => (s.department || s.branch || '').toUpperCase() === dept.id.toUpperCase()).length;
-              return (
-                <div key={dept.id} style={{ padding: '0.75rem 0.85rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a' }}>
-                      {dept.name} ({dept.id})
-                    </div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                      HOD: {dept.hod} • {count} Students
-                    </div>
-                  </div>
-
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontWeight: 800, fontSize: '0.92rem', color: dept.avgAttendance >= 85 ? '#059669' : '#d97706' }}>
-                      {dept.avgAttendance}%
-                    </div>
-                    <div style={{ fontSize: '0.68rem', color: '#64748b' }}>Avg Attendance</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
+      <div>
         {/* Live Institutional Audit Feed (PRD 4.4 & 13.15) */}
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
@@ -170,7 +129,7 @@ export default function PrincipalOverview() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {auditLogs.slice(0, 4).map(log => (
+            {auditLogs.slice(0, 6).map(log => (
               <div key={log.id} style={{ padding: '0.75rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.78rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
                   <span style={{ fontWeight: 700, color: '#1d4ed8' }}>{log.action}</span>
