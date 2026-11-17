@@ -24,7 +24,7 @@ export default function HODDashboard() {
   const navItems = [
     { id: 'department-overview', label: 'Department Overview', icon: Building2 },
     { id: 'student-records', label: 'Student Records', icon: UserCheck },
-    { id: 'students-classes', label: 'Section & Student Roster', icon: GraduationCap },
+    { id: 'students-classes', label: 'Class & Section Attendance', icon: GraduationCap },
     { id: 'attendance-upload', label: 'Attendance Upload & Publish', icon: FileSpreadsheet },
     { id: 'faculty-management', label: 'Faculty Directory & Workload', icon: Users },
     { id: 'monthly-reports', label: 'Monthly Reports', icon: FileText },

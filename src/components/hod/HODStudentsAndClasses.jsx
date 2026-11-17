@@ -690,7 +690,7 @@ export default function HODStudentsAndClasses() {
                 transition: 'all 0.15s ease'
               }}
             >
-              <GraduationCap size={16} /> Student Academic Promotion & Roster ({sectionStudents.length})
+              <GraduationCap size={16} /> Student List & Academic Promotion ({sectionStudents.length})
             </button>
           </div>
 
