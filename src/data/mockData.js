@@ -266,92 +266,7 @@ export const getSemesterProgressionInfo = (currentSem) => {
   };
 };
 
-export const SAMPLE_MULTI_SEMESTER_ATTENDANCE = {
-  "1-1": {
-    conducted: 220,
-    attended: 200,
-    absent: 20,
-    percentage: "90.91",
-    monthlyAttendance: [
-      { month: "September 2023", classesConducted: 55, classesAttended: 51, classesAbsent: 4, attendancePercentage: "92.73" },
-      { month: "October 2023", classesConducted: 55, classesAttended: 50, classesAbsent: 5, attendancePercentage: "90.91" },
-      { month: "November 2023", classesConducted: 55, classesAttended: 50, classesAbsent: 5, attendancePercentage: "90.91" },
-      { month: "December 2023", classesConducted: 55, classesAttended: 49, classesAbsent: 6, attendancePercentage: "89.09" }
-    ]
-  },
-  "1-2": {
-    conducted: 230,
-    attended: 206,
-    absent: 24,
-    percentage: "89.57",
-    monthlyAttendance: [
-      { month: "February 2024", classesConducted: 58, classesAttended: 52, classesAbsent: 6, attendancePercentage: "89.66" },
-      { month: "March 2024", classesConducted: 60, classesAttended: 54, classesAbsent: 6, attendancePercentage: "90.00" },
-      { month: "April 2024", classesConducted: 56, classesAttended: 50, classesAbsent: 6, attendancePercentage: "89.29" },
-      { month: "May 2024", classesConducted: 56, classesAttended: 50, classesAbsent: 6, attendancePercentage: "89.29" }
-    ]
-  },
-  "2-1": {
-    conducted: 240,
-    attended: 218,
-    absent: 22,
-    percentage: "90.83",
-    monthlyAttendance: [
-      { month: "July 2024", classesConducted: 60, classesAttended: 55, classesAbsent: 5, attendancePercentage: "91.67" },
-      { month: "August 2024", classesConducted: 60, classesAttended: 55, classesAbsent: 5, attendancePercentage: "91.67" },
-      { month: "September 2024", classesConducted: 60, classesAttended: 54, classesAbsent: 6, attendancePercentage: "90.00" },
-      { month: "October 2024", classesConducted: 60, classesAttended: 54, classesAbsent: 6, attendancePercentage: "90.00" }
-    ]
-  },
-  "2-2": {
-    conducted: 235,
-    attended: 210,
-    absent: 25,
-    percentage: "89.36",
-    monthlyAttendance: [
-      { month: "January 2025", classesConducted: 58, classesAttended: 52, classesAbsent: 6, attendancePercentage: "89.66" },
-      { month: "February 2025", classesConducted: 58, classesAttended: 52, classesAbsent: 6, attendancePercentage: "89.66" },
-      { month: "March 2025", classesConducted: 60, classesAttended: 54, classesAbsent: 6, attendancePercentage: "90.00" },
-      { month: "April 2025", classesConducted: 59, classesAttended: 52, classesAbsent: 7, attendancePercentage: "88.14" }
-    ]
-  },
-  "3-1": {
-    conducted: 240,
-    attended: 212,
-    absent: 28,
-    percentage: "88.33",
-    monthlyAttendance: [
-      { month: "July 2025", classesConducted: 60, classesAttended: 54, classesAbsent: 6, attendancePercentage: "90.00" },
-      { month: "August 2025", classesConducted: 60, classesAttended: 53, classesAbsent: 7, attendancePercentage: "88.33" },
-      { month: "September 2025", classesConducted: 60, classesAttended: 53, classesAbsent: 7, attendancePercentage: "88.33" },
-      { month: "October 2025", classesConducted: 60, classesAttended: 52, classesAbsent: 8, attendancePercentage: "86.67" }
-    ]
-  },
-  "3-2": {
-    conducted: 230,
-    attended: 204,
-    absent: 26,
-    percentage: "88.70",
-    monthlyAttendance: [
-      { month: "January 2026", classesConducted: 55, classesAttended: 49, classesAbsent: 6, attendancePercentage: "89.09" },
-      { month: "February 2026", classesConducted: 55, classesAttended: 49, classesAbsent: 6, attendancePercentage: "89.09" },
-      { month: "March 2026", classesConducted: 60, classesAttended: 53, classesAbsent: 7, attendancePercentage: "88.33" },
-      { month: "April 2026", classesConducted: 60, classesAttended: 53, classesAbsent: 7, attendancePercentage: "88.33" }
-    ]
-  },
-  "4-1": {
-    conducted: 240,
-    attended: 212,
-    absent: 28,
-    percentage: "88.33",
-    monthlyAttendance: [
-      { month: "July 2026", classesConducted: 56, classesAttended: 50, classesAbsent: 6, attendancePercentage: "89.29" },
-      { month: "August 2026", classesConducted: 64, classesAttended: 58, classesAbsent: 6, attendancePercentage: "90.63" },
-      { month: "September 2026", classesConducted: 60, classesAttended: 52, classesAbsent: 8, attendancePercentage: "86.67" },
-      { month: "October 2026", classesConducted: 60, classesAttended: 52, classesAbsent: 8, attendancePercentage: "86.67" }
-    ]
-  }
-};
+export const SAMPLE_MULTI_SEMESTER_ATTENDANCE = {};
 
 export const getStudentSemesterAttendance = (student, semCode) => {
   const code = normalizeSemesterCode(semCode);
@@ -448,40 +363,30 @@ export const INITIAL_STUDENTS = [
     feeReimbursementStatus: "No",
     profileStatus: PROFILE_STATUSES.COMPLETE,
     profileCompletion: 85,
-    cgpa: 8.50,
-    sgpaLast: 8.50,
-    attendanceOverall: 88.5,
+    cgpa: 0.00,
+    sgpaLast: 0.00,
+    attendanceOverall: 0.0,
     status: "Active",
     accountSetup: true,
     accountStatus: "ACTIVE",
     tempPassword: "23NE1A05K3",
     mustChangePassword: false,
     provisionedAt: "2023-09-06",
-    totalClassesHeld: 240,
-    totalClassesAttended: 212,
-    totalClassesAbsent: 28,
-    monthlyAttendance: [
-      { month: "July 2026", classesConducted: 56, classesAttended: 50, classesAbsent: 6, attendancePercentage: 89.29 },
-      { month: "August 2026", classesConducted: 64, classesAttended: 58, classesAbsent: 6, attendancePercentage: 90.63 },
-      { month: "September 2026", classesConducted: 60, classesAttended: 52, classesAbsent: 8, attendancePercentage: 86.67 },
-      { month: "October 2026", classesConducted: 60, classesAttended: 52, classesAbsent: 8, attendancePercentage: 86.67 }
-    ],
+    totalClassesHeld: 0,
+    totalClassesAttended: 0,
+    totalClassesAbsent: 0,
+    monthlyAttendance: [],
     feeStatus: "Paid",
     feeDue: 0,
     totalFee: 0,
-    semesterAttendance: { ...SAMPLE_MULTI_SEMESTER_ATTENDANCE }
+    semesterAttendance: {}
   }
 ];
 
 export const INITIAL_EXAM_TIMETABLES = [];
 
 export const STUDENT_SUBJECTS = {
-  "23NE1A05K3": [
-    { code: "CS701PC", name: "Cloud Computing and Distributed Architecture", faculty: "Faculty Member", credits: 3, classesHeld: 48, classesAttended: 44, attendancePct: 91.7, mid1Marks: 27, mid2Marks: 28, internalTotal: 28, syllabusCompleted: "85%" },
-    { code: "CS702PC", name: "Cryptography and Network Security", faculty: "Faculty Member", credits: 3, classesHeld: 46, classesAttended: 40, attendancePct: 87.0, mid1Marks: 25, mid2Marks: 26, internalTotal: 26, syllabusCompleted: "80%" },
-    { code: "CS711PE", name: "Full Stack Web Development", faculty: "Faculty Member", credits: 3, classesHeld: 50, classesAttended: 46, attendancePct: 92.0, mid1Marks: 29, mid2Marks: 29, internalTotal: 29, syllabusCompleted: "90%" },
-    { code: "CS721PE", name: "Machine Learning Foundations", faculty: "Faculty Member", credits: 3, classesHeld: 44, classesAttended: 38, attendancePct: 86.4, mid1Marks: 24, mid2Marks: 27, internalTotal: 26, syllabusCompleted: "80%" }
-  ]
+  "23NE1A05K3": []
 };
 
 export const STUDENT_EXAMS = {

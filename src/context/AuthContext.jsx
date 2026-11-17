@@ -45,6 +45,12 @@ export function AuthProvider({ children }) {
 
   const [students, setStudents] = useState(() => {
     try {
+      const v = localStorage.getItem('tec_students_version');
+      if (v !== 'v2') {
+        localStorage.setItem('tec_students_version', 'v2');
+        localStorage.setItem('tec_students', JSON.stringify(INITIAL_STUDENTS));
+        return INITIAL_STUDENTS;
+      }
       const saved = localStorage.getItem('tec_students');
       return saved ? JSON.parse(saved) : INITIAL_STUDENTS;
     } catch {
