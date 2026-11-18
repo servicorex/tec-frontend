@@ -1604,7 +1604,7 @@ export default function HODStudentsAndClasses() {
                   <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0e2154' }}>Official Multi-Column Enrollment Template</div>
                   <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Includes Roll Number, Student Name, Branch, Year, Semester, Section</div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div>
                   <button 
                     type="button" 
                     onClick={handleDownloadRegTemplate} 
@@ -1612,14 +1612,6 @@ export default function HODStudentsAndClasses() {
                     style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
                   >
                     <Download size={14} /> Download Template (.CSV)
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={handleLoadSampleCsv} 
-                    className="btn btn-sm btn-primary"
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-                  >
-                    <Sparkles size={14} /> Load Demo Multi-Section Batch
                   </button>
                 </div>
               </div>

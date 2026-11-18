@@ -788,34 +788,7 @@ export default function HODAttendanceUpload() {
               </div>
             )}
 
-            {/* Quick Demo Testing Loaders */}
-            <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
-              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                <Sparkles size={14} style={{ display: 'inline', color: '#f59e0b', marginRight: '4px' }} />
-                <strong>Fast Review Testing:</strong> Load multi-subject sample CSVs directly:
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button 
-                  type="button" 
-                  onClick={handleLoadValidSample} 
-                  className="btn btn-sm btn-outline"
-                  style={{ fontSize: '0.78rem', color: '#059669', borderColor: '#059669' }}
-                >
-                  <CheckCircle2 size={13} /> Load 100% Valid Section CSV
-                </button>
-                <button 
-                  type="button" 
-                  onClick={handleLoadErrorSample} 
-                  className="btn btn-sm btn-outline"
-                  style={{ fontSize: '0.78rem', color: '#dc2626', borderColor: '#dc2626' }}
-                >
-                  <AlertTriangle size={13} /> Load CSV with Sample Errors
-                </button>
-              </div>
-            </div>
-
           </div>
-
         </div>
       )}
 
