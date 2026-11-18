@@ -358,8 +358,8 @@ export function AuthProvider({ children }) {
     }
 
     if (role === 'hod') {
-      const branchId = branch || 'CSE';
-      const dept = departments.find(d => d.id === branchId) || departments.find(d => d.id === 'CSE') || departments[0] || DEPARTMENTS[0];
+      const branchId = (branch || 'CSE').trim().toUpperCase();
+      const dept = departments.find(d => d.id.toUpperCase() === branchId) || departments.find(d => d.id.toUpperCase() === 'CSE') || departments[0] || DEPARTMENTS[0];
       
       const expectedEmail = (dept.hodEmail || `hod.${dept.id.toLowerCase()}@tecnrt.org`).trim().toLowerCase();
       const expectedPassword = dept.password || `HOD_${dept.id.toUpperCase()}#2026`;
@@ -367,11 +367,13 @@ export function AuthProvider({ children }) {
       const inputEmail = username.trim().toLowerCase();
       const inputPassword = password.trim();
 
-      if (inputEmail !== expectedEmail && inputEmail !== `hod.${dept.id.toLowerCase()}@tecnrt.org`) {
+      // Only accept the currently assigned official email for this department HOD
+      if (inputEmail !== expectedEmail) {
         showToast("Invalid HOD email or identifier for this department.", "error");
         return { success: false, message: "Invalid email." };
       }
 
+      // Check current assigned password
       if (inputPassword !== expectedPassword) {
         showToast("Invalid HOD password or security key.", "error");
         return { success: false, message: "Invalid password." };
@@ -1331,6 +1333,17 @@ export function AuthProvider({ children }) {
         return s;
       }));
     }
+
+    // Update in departments if matching HOD email or dept ID
+    setDepartments(prev => prev.map(d => {
+      if (d.hodEmail.toLowerCase() === cleanId.toLowerCase() || d.id.toUpperCase() === cleanId.toUpperCase()) {
+        return {
+          ...d,
+          password: newPassword
+        };
+      }
+      return d;
+    }));
 
     logAction({
       action: "ADMIN_RESET_PASSWORD",
