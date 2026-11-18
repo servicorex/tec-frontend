@@ -17,41 +17,46 @@ export const ATTENDANCE_COLUMNS = [
   "Attendance Percentage"
 ];
 
+// Student Registration columns (Clean, without semester)
 export const STUDENT_REGISTRATION_COLUMNS = [
   "Roll Number",
   "Student Name",
   "Branch",
   "Year",
-  "Semester",
   "Section"
 ];
 
 // Generate standard CSV template for a given section & subject
 export function generateAttendanceTemplate(studentsList = [], department = "CSE", classSection = "IV B.Tech CSE-A", subjectCode = "CS711PE", period = "October 2026") {
-  const source = studentsList.length > 0 ? studentsList : INITIAL_STUDENTS.filter(s => s.department === department);
+  const source = studentsList.length > 0 ? studentsList : [];
   const rows = [
     ATTENDANCE_COLUMNS.join(","),
     ...source.map(s => {
-      return `"${s.rollNumber}","${s.name}","${s.department}","${s.year}","${s.semester}","${s.section}","${subjectCode}","${period}",40,,,""`;
+      return `"${s.rollNumber}","${s.name}","${s.department}","${s.year}","${s.semester || ''}","${s.section}","${subjectCode}","${period}",40,,,""`;
     })
   ];
   return rows.join("\n");
 }
 
-// Generate multi-column student registration template for batch enrollment
-export function generateStudentRegistrationTemplate(branch = "CSE", year = "1st Year", semester = "1-1", section = "A") {
-  const yr = normalizeYear(year);
-  const prefix = yr === '1st Year' ? '24NE1A05' : yr === '2nd Year' ? '23NE1A05' : yr === '3rd Year' ? '22NE1A05' : '21NE1A05';
-  const cleanSec = (section || 'A').replace(/^Sec(tion)?\s*/i, '').trim().toUpperCase();
-  const cleanSem = semester || '1-1';
+// Generate blank multi-column student registration template for batch enrollment (NO fake students)
+export function generateStudentRegistrationTemplate(branch = "CSE", year = "1st Year", section = "A") {
+  // Completely empty template containing only header columns so user can enter actual student details
+  return STUDENT_REGISTRATION_COLUMNS.join(",") + "\n";
+}
 
-  const sampleRows = [
-    STUDENT_REGISTRATION_COLUMNS.join(","),
-    `"${prefix}01","Ch. Naga Sai","${branch}","${yr}","${cleanSem}","${cleanSec}"`,
-    `"${prefix}02","V. Sri Divya","${branch}","${yr}","${cleanSem}","${cleanSec}"`,
-    `"${prefix}03","P. Hemanth Kumar","${branch}","${yr}","${cleanSem}","${cleanSec}"`
+// Generate native Excel workbook (.xlsx) for batch student enrollment
+export function generateStudentRegistrationWorkbook(branch = "CSE", year = "1st Year", section = "A") {
+  const ws = XLSX.utils.aoa_to_sheet([STUDENT_REGISTRATION_COLUMNS]);
+  ws['!cols'] = [
+    { wch: 18 }, // Roll Number
+    { wch: 28 }, // Student Name
+    { wch: 14 }, // Branch
+    { wch: 14 }, // Year
+    { wch: 12 }  // Section
   ];
-  return sampleRows.join("\n");
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Student Registration");
+  return wb;
 }
 
 // Pre-packaged test datasets for demo convenience
@@ -391,15 +396,11 @@ export function generateOverallAttendanceWorkbook(
     studentsList.forEach(s => {
       const row = [s.rollNumber, s.name];
       subjects.forEach(() => {
-        row.push(42); // Sample attended classes
-        row.push(50); // Sample conducted classes
+        row.push(""); // Blank attended classes for teacher entry
+        row.push(""); // Blank conducted classes for teacher entry
       });
       data.push(row);
     });
-  } else {
-    const deptCode = department === 'CSE' ? '05' : department === 'ECE' ? '04' : department === 'EEE' ? '02' : department === 'IT' ? '12' : '05';
-    data.push([`23NE1A${deptCode}01`, "Sample Student 1", ...subjects.flatMap(() => [44, 50])]);
-    data.push([`23NE1A${deptCode}02`, "Sample Student 2", ...subjects.flatMap(() => [46, 50])]);
   }
 
   const ws = XLSX.utils.aoa_to_sheet(data);
@@ -439,18 +440,11 @@ export function generateOverallAttendanceTemplate(
     rows = studentsList.map(s => {
       const vals = [];
       subjects.forEach(() => {
-        vals.push("42"); // Sample attended classes
-        vals.push("50"); // Sample conducted classes
+        vals.push(""); // Blank attended classes
+        vals.push(""); // Blank conducted classes
       });
       return `"${s.rollNumber}","${s.name}",${vals.join(",")}`;
     });
-  } else {
-    // Generate helpful template structure showing Conducted vs Attended
-    const deptCode = department === 'CSE' ? '05' : department === 'ECE' ? '04' : department === 'EEE' ? '02' : department === 'IT' ? '12' : '05';
-    rows = [
-      `"23NE1A${deptCode}01","Sample Student 1",${subjects.map(() => "44,50").join(",")}`,
-      `"23NE1A${deptCode}02","Sample Student 2",${subjects.map(() => "46,50").join(",")}`
-    ];
   }
   return [headers.join(","), ...rows].join("\n");
 }

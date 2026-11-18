@@ -29,8 +29,10 @@ import {
 } from 'lucide-react';
 import { 
   generateStudentRegistrationTemplate, 
+  generateStudentRegistrationWorkbook,
   parseAndValidateStudentCSV 
 } from '../../data/sampleSpreadsheet';
+import * as XLSX from 'xlsx';
 import { 
   SEMESTER_STRUCTURE, 
   normalizeSemesterCode, 
@@ -396,36 +398,50 @@ export default function HODStudentsAndClasses() {
   const [csvTab, setCsvTab] = useState('ALL');
 
   const handleDownloadRegTemplate = () => {
-    const csv = generateStudentRegistrationTemplate(selectedBranch, selectedYear, selectedSemester, selectedSection);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Student_Registration_${selectedBranch}_${selectedYear.replace(/\s+/g, '')}_${selectedSemester}_Sec${selectedSection}_Template.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast(`Multi-column template downloaded with pre-built schema!`, "success");
+    const wb = generateStudentRegistrationWorkbook(selectedBranch, selectedYear, selectedSection);
+    const yrClean = selectedYear.replace(/\s+/g, '');
+    const filename = `Student_Registration_${selectedBranch}_${yrClean}_Sec${selectedSection}_Template.xlsx`;
+    XLSX.writeFile(wb, filename);
+    showToast(`Downloaded blank Excel registration template for ${assignedBranch} ${selectedYear} Section ${selectedSection}!`, "success");
   };
 
   const handleProcessCsvText = (filename, content) => {
     setCsvFileName(filename);
-    const context = { branch: selectedBranch, year: selectedYear, semester: selectedSemester, section: selectedSection };
+    const context = { branch: selectedBranch, year: selectedYear, section: selectedSection };
     const parsed = parseAndValidateStudentCSV(content, students, context);
     setCsvResult(parsed);
     if (parsed.isValid) {
       showToast(`${parsed.summary.validRows} students parsed successfully across designated branch/sections!`, "success");
     } else {
-      showToast(`CSV has ${parsed.summary.rejectedRows} issues needing correction before import.`, "warning");
+      showToast(`Spreadsheet has ${parsed.summary.rejectedRows} issues needing correction before import.`, "warning");
     }
   };
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => handleProcessCsvText(file.name, evt.target.result);
-    reader.readAsText(file);
+    setCsvFileName(file.name);
+
+    // Support both native .xlsx / .xls and .csv
+    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.SheetNames[0];
+          const csvText = XLSX.utils.sheet_to_csv(workbook.Sheets[firstSheet]);
+          handleProcessCsvText(file.name, csvText);
+        } catch (err) {
+          showToast("Failed to read Excel file: " + err.message, "error");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (evt) => handleProcessCsvText(file.name, evt.target.result);
+      reader.readAsText(file);
+    }
   };
 
   const handleLoadSampleCsv = () => {
@@ -1596,13 +1612,13 @@ export default function HODStudentsAndClasses() {
             <div className="modal-body" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               
               <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '0.85rem 1rem', borderRadius: '8px', fontSize: '0.82rem', color: '#166534' }}>
-                <strong>Dynamic Section Routing:</strong> Students in the CSV are automatically assigned to their respective <strong>Branch, Academic Year, Semester, and Section</strong> specified per row. If columns are omitted, defaults fall back to the currently active view (<strong>{selectedBranch} — {selectedYear} ({selectedSemester}) Sec {selectedSection}</strong>). Duplicate roll numbers will be automatically flagged and rejected.
+                <strong>Dynamic Section Routing:</strong> Students in the Excel / CSV file are assigned to their respective <strong>Branch, Academic Year, and Section</strong>. If columns are omitted, defaults fall back to the currently active view (<strong>{selectedBranch} — {selectedYear} Section {selectedSection}</strong>). Duplicate roll numbers will be automatically flagged and rejected.
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', padding: '0.75rem 1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 <div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0e2154' }}>Official Multi-Column Enrollment Template</div>
-                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Includes Roll Number, Student Name, Branch, Year, Semester, Section</div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0e2154' }}>Blank Multi-Column Enrollment Template</div>
+                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Includes Roll Number, Student Name, Branch, Year, Section</div>
                 </div>
                 <div>
                   <button 
@@ -1611,7 +1627,7 @@ export default function HODStudentsAndClasses() {
                     className="btn btn-sm btn-outline"
                     style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
                   >
-                    <Download size={14} /> Download Template (.CSV)
+                    <Download size={14} /> Download Excel Template (.xlsx)
                   </button>
                 </div>
               </div>
@@ -1619,14 +1635,14 @@ export default function HODStudentsAndClasses() {
               <div style={{ border: '2px dashed #cbd5e1', borderRadius: '10px', padding: '1.5rem', textAlign: 'center', background: '#f8fafc' }}>
                 <Upload size={28} style={{ color: '#64748b', margin: '0 auto 0.5rem' }} />
                 <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.25rem' }}>
-                  Select or drag a CSV file with student records
+                  Select or drag an Excel (.xlsx) or CSV file with student records
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.75rem' }}>
-                  Supported columns: Roll Number, Student Name, Branch, Year, Semester, Section
+                  Supported columns: Roll Number, Student Name, Branch, Year, Section
                 </div>
                 <input 
                   type="file" 
-                  accept=".csv,text/csv" 
+                  accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" 
                   onChange={handleFileSelect}
                   style={{ fontSize: '0.82rem' }}
                 />
