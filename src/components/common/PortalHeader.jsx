@@ -182,7 +182,6 @@ export default function PortalHeader() {
           {/* Back to Public Site */}
           <button 
             onClick={() => {
-              quickSwitchRole('public');
               navigate('/');
             }}
             className="btn btn-outline btn-sm"

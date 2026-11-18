@@ -60,7 +60,7 @@ function PageLoadingFallback() {
 }
 
 export default function App() {
-  const { currentUser, quickSwitchRole, toasts, removeToast } = useAuth();
+  const { currentUser, toasts, removeToast, setLoginModalOpen, setLoginModalRole } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -69,20 +69,38 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  // If path is a portal route, ensure appropriate role is active
+  // Enforce Route Authentication Guards on internal portals
   useEffect(() => {
+    const isPortalRoute = location.pathname.startsWith('/portal');
+    if (!isPortalRoute) return;
+
     if (location.pathname.startsWith('/portal/faculty')) {
-      // Faculty portal has been removed permanently - redirect to student portal
-      navigate('/portal/student', { replace: true });
-      quickSwitchRole('student');
-    } else if (location.pathname.startsWith('/portal/student') && currentUser.role !== 'student') {
-      quickSwitchRole('student');
-    } else if (location.pathname.startsWith('/portal/hod') && currentUser.role !== 'hod') {
-      quickSwitchRole('hod');
-    } else if ((location.pathname.startsWith('/portal/principal') || location.pathname.startsWith('/portal/admin')) && currentUser.role !== 'principal' && currentUser.role !== 'admin') {
-      quickSwitchRole('principal');
+      // Discontinued portal
+      navigate('/', { replace: true });
+      return;
     }
-  }, [location.pathname, currentUser.role]);
+
+    // If user is not authenticated or is public, redirect to home and open login modal
+    if (!currentUser?.isAuthenticated || currentUser?.role === 'public') {
+      let targetRole = 'student';
+      if (location.pathname.startsWith('/portal/hod')) targetRole = 'hod';
+      if (location.pathname.startsWith('/portal/principal') || location.pathname.startsWith('/portal/admin')) targetRole = 'principal';
+
+      navigate('/', { replace: true });
+      setLoginModalRole(targetRole);
+      setLoginModalOpen(true);
+      return;
+    }
+
+    // Role mismatch protection: e.g. Student trying to view /portal/hod
+    if (location.pathname.startsWith('/portal/hod') && currentUser.role !== 'hod') {
+      navigate('/', { replace: true });
+    } else if (location.pathname.startsWith('/portal/student') && currentUser.role !== 'student') {
+      navigate('/', { replace: true });
+    } else if ((location.pathname.startsWith('/portal/principal') || location.pathname.startsWith('/portal/admin')) && currentUser.role !== 'principal' && currentUser.role !== 'admin') {
+      navigate('/admin', { replace: true });
+    }
+  }, [location.pathname, currentUser?.isAuthenticated, currentUser?.role]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -223,11 +241,8 @@ export default function App() {
               <Route path="/admin" element={<AdminLoginPage />} />
               <Route path="/admin.html" element={<Navigate to="/admin" replace />} />
 
-              {/* Portal routes accessible directly */}
-              <Route path="/portal/student" element={<StudentDashboard />} />
-              <Route path="/portal/faculty" element={<Navigate to="/portal/student" replace />} />
-              <Route path="/portal/hod" element={<HODDashboard />} />
-              <Route path="/portal/principal" element={<Navigate to="/admin" replace />} />
+              {/* Portal routes protected - redirect unauthenticated visitors to login */}
+              <Route path="/portal/*" element={<Navigate to="/" replace />} />
 
               {/* 404 Fallback */}
               <Route path="*" element={<NotFoundPage />} />

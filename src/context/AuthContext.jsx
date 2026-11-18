@@ -24,11 +24,24 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   // Current user / active view
   // role: 'public' | 'student' | 'hod' | 'principal' (Faculty completely removed)
-  const [currentUser, setCurrentUser] = useState({
-    role: 'public',
-    isAuthenticated: false,
-    profile: null,
-    mustChangePassword: false
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('tec_current_user');
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        if (parsed?.isAuthenticated && parsed?.role && parsed.role !== 'public') {
+          return parsed;
+        }
+      }
+    } catch {
+      // fallback
+    }
+    return {
+      role: 'public',
+      isAuthenticated: false,
+      profile: null,
+      mustChangePassword: false
+    };
   });
 
   // Persistent state helper using localStorage
@@ -97,6 +110,18 @@ export function AuthProvider({ children }) {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [loginModalRole, setLoginModalRole] = useState('student');
   const [toasts, setToasts] = useState([]);
+
+  useEffect(() => {
+    try {
+      if (currentUser?.isAuthenticated && currentUser.role !== 'public') {
+        localStorage.setItem('tec_current_user', JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem('tec_current_user');
+      }
+    } catch (e) {
+      console.warn("Storage sync error", e);
+    }
+  }, [currentUser]);
 
   // Auto-persist state changes to localStorage
   useEffect(() => {
@@ -433,6 +458,8 @@ export function AuthProvider({ children }) {
       action: "USER_LOGOUT",
       details: `${currentUser.profile?.name || "User"} signed out`
     });
+    localStorage.removeItem('tec_current_user');
+    localStorage.removeItem('tec_auth_token');
     setCurrentUser({
       role: 'public',
       isAuthenticated: false,

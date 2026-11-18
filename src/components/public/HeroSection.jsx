@@ -120,43 +120,29 @@ export default function HeroSection() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
                   <button 
-                    onClick={() => quickSwitchRole('student')}
+                    onClick={() => {
+                      setLoginModalRole('student');
+                      setLoginModalOpen(true);
+                    }}
                     style={{ textAlign: 'left', padding: '0.85rem', background: 'rgba(37,99,235,0.15)', border: '1px solid rgba(37,99,235,0.3)', borderRadius: '12px', color: '#ffffff', cursor: 'pointer', transition: 'all 0.2s' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.85rem', color: '#93c5fd', marginBottom: '0.2rem' }}>
-                      <GraduationCap size={16} /> Student View
+                      <GraduationCap size={16} /> Student Portal
                     </div>
                     <div style={{ fontSize: '0.72rem', color: '#cbd5e1' }}>Attendance, Exam, Fees</div>
                   </button>
 
                   <button 
-                    onClick={() => quickSwitchRole('faculty')}
-                    style={{ textAlign: 'left', padding: '0.85rem', background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '12px', color: '#ffffff', cursor: 'pointer', transition: 'all 0.2s' }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.85rem', color: '#fcd34d', marginBottom: '0.2rem' }}>
-                      <Briefcase size={16} /> Faculty View
-                    </div>
-                    <div style={{ fontSize: '0.72rem', color: '#cbd5e1' }}>Spreadsheet Uploads</div>
-                  </button>
-
-                  <button 
-                    onClick={() => quickSwitchRole('hod')}
+                    onClick={() => {
+                      setLoginModalRole('hod');
+                      setLoginModalOpen(true);
+                    }}
                     style={{ textAlign: 'left', padding: '0.85rem', background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)', borderRadius: '12px', color: '#ffffff', cursor: 'pointer', transition: 'all 0.2s' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.85rem', color: '#d8b4fe', marginBottom: '0.2rem' }}>
-                      <Building2 size={16} /> HOD View
+                      <Building2 size={16} /> HOD Portal
                     </div>
                     <div style={{ fontSize: '0.72rem', color: '#cbd5e1' }}>Department Oversight</div>
-                  </button>
-
-                  <button 
-                    onClick={() => quickSwitchRole('principal')}
-                    style={{ textAlign: 'left', padding: '0.85rem', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '12px', color: '#ffffff', cursor: 'pointer', transition: 'all 0.2s' }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.85rem', color: '#6ee7b7', marginBottom: '0.2rem' }}>
-                      <Award size={16} /> Principal Suite
-                    </div>
-                    <div style={{ fontSize: '0.72rem', color: '#cbd5e1' }}>Institution Analytics</div>
                   </button>
                 </div>
               </div>
