@@ -368,7 +368,7 @@ export function parseAndValidateStudentCSV(csvContent, existingStudents = [], co
   };
 }
 
-// Generate Overall Attendance CSV Template (Multi-Subject in One Sheet)
+// Generate Overall Attendance CSV Template with Subject Classes Conducted vs Attended
 export function generateOverallAttendanceTemplate(
   studentsList = [],
   subjects = [],
@@ -376,22 +376,32 @@ export function generateOverallAttendanceTemplate(
   classSection = "IV Year CSE-A",
   period = "October 2026"
 ) {
-  const subjectHeaders = subjects.map(s => s.name || s.code);
-  const headers = ["Roll Number", "Student Name", ...subjectHeaders, "Overall Attendance"];
-  
+  // Each subject column will represent "Conducted / Attended" (e.g. "Maths [40]") or conducted in row header
+  const headers = ["Roll Number", "Student Name"];
+  subjects.forEach(s => {
+    const label = s.name || s.code;
+    headers.push(`${label} (Attended)`);
+    headers.push(`${label} (Total Held)`);
+  });
+  headers.push("Overall Percentage");
+
   let rows = [];
   if (studentsList && studentsList.length > 0) {
     rows = studentsList.map(s => {
-      const subjectValues = subjects.map(() => "85%");
-      return `"${s.rollNumber}","${s.name}",${subjectValues.join(",")},"85%"`;
+      const vals = [];
+      subjects.forEach(() => {
+        vals.push("42"); // Sample attended classes
+        vals.push("50"); // Sample conducted classes
+      });
+      vals.push("84.0%");
+      return `"${s.rollNumber}","${s.name}",${vals.join(",")}`;
     });
   } else {
-    // Authentic Tirumala Engineering College Roll Numbers pattern
+    // Generate helpful template structure showing Conducted vs Attended
     const deptCode = department === 'CSE' ? '05' : department === 'ECE' ? '04' : department === 'EEE' ? '02' : department === 'IT' ? '12' : '05';
     rows = [
-      `"23NE1A${deptCode}01","Ch. Naga Sai",${subjects.map((_, i) => `${85 + (i % 3) * 5}%`).join(",")},"88.3%"`,
-      `"23NE1A${deptCode}02","V. Sri Divya",${subjects.map((_, i) => `${90 + (i % 2) * 5}%`).join(",")},"92.5%"`,
-      `"23NE1A${deptCode}03","P. Hemanth Kumar",${subjects.map((_, i) => `${72 + (i % 4) * 2}%`).join(",")},"75.0%"`
+      `"23NE1A${deptCode}01","Sample Student 1",${subjects.map(() => "44,50").join(",")},"88.0%"`,
+      `"23NE1A${deptCode}02","Sample Student 2",${subjects.map(() => "46,50").join(",")},"92.0%"`
     ];
   }
   return [headers.join(","), ...rows].join("\n");
@@ -469,34 +479,69 @@ export function parseAndValidateOverallAttendanceCSV(csvContent, context = {}) {
       }
     }
 
-    // 2. Subject columns validation
+    // 2. Subject columns validation (Supports single column % OR two columns: Attended, Conducted)
     const rowSubjects = [];
     let sumPercentage = 0;
     let validSubjectCount = 0;
 
-    for (let sIdx = 0; sIdx < headerSubjectNames.length; sIdx++) {
-      const colName = headerSubjectNames[sIdx];
-      const valStr = cleanCells[2 + sIdx] || "";
-      const numStr = valStr.replace(/%/g, "").trim();
-      const numVal = parseFloat(numStr);
+    // Detect if headers follow "Subject (Attended)", "Subject (Total Held)" pairs
+    const isAttendedHeldPairs = headerSubjectNames.some(h => /attended|held|conducted/i.test(h));
 
-      const matchedConfig = configuredSubjects.find(cs => 
-        (cs.name && cs.name.toLowerCase() === colName.toLowerCase()) || 
-        (cs.code && cs.code.toLowerCase() === colName.toLowerCase())
-      ) || configuredSubjects[sIdx] || { code: `SUB${sIdx + 1}`, name: colName };
+    if (isAttendedHeldPairs) {
+      // Process pairs
+      for (let sIdx = 0; sIdx < configuredSubjects.length; sIdx++) {
+        const sub = configuredSubjects[sIdx];
+        const attendedColIdx = 2 + (sIdx * 2);
+        const heldColIdx = 2 + (sIdx * 2) + 1;
 
-      if (valStr === "" || isNaN(numVal)) {
-        errors.push(`Missing or invalid percentage value for subject [${colName}]`);
-      } else if (numVal < 0 || numVal > 100) {
-        errors.push(`Attendance percentage for [${colName}] (${valStr}) must be between 0% and 100%`);
-      } else {
-        sumPercentage += numVal;
-        validSubjectCount++;
-        rowSubjects.push({
-          code: matchedConfig.code || `SUB${sIdx + 1}`,
-          name: matchedConfig.name || colName,
-          attendancePct: parseFloat(numVal.toFixed(1))
-        });
+        const attendedVal = parseFloat(cleanCells[attendedColIdx] || '0');
+        const heldVal = parseFloat(cleanCells[heldColIdx] || '0');
+
+        if (isNaN(heldVal) || heldVal <= 0) {
+          errors.push(`Invalid classes held for ${sub.name || sub.code}`);
+        } else if (isNaN(attendedVal) || attendedVal < 0 || attendedVal > heldVal) {
+          errors.push(`Attended classes (${cleanCells[attendedColIdx]}) cannot exceed conducted (${heldVal}) for ${sub.name || sub.code}`);
+        } else {
+          const subPct = parseFloat(((attendedVal / heldVal) * 100).toFixed(1));
+          sumPercentage += subPct;
+          validSubjectCount++;
+          rowSubjects.push({
+            code: sub.code || `SUB${sIdx + 1}`,
+            name: sub.name || `Subject ${sIdx + 1}`,
+            classesHeld: heldVal,
+            classesAttended: attendedVal,
+            attendancePct: subPct
+          });
+        }
+      }
+    } else {
+      // Standard percentage columns
+      for (let sIdx = 0; sIdx < headerSubjectNames.length; sIdx++) {
+        const colName = headerSubjectNames[sIdx];
+        const valStr = cleanCells[2 + sIdx] || "";
+        const numStr = valStr.replace(/%/g, "").trim();
+        const numVal = parseFloat(numStr);
+
+        const matchedConfig = configuredSubjects.find(cs => 
+          (cs.name && cs.name.toLowerCase() === colName.toLowerCase()) || 
+          (cs.code && cs.code.toLowerCase() === colName.toLowerCase())
+        ) || configuredSubjects[sIdx] || { code: `SUB${sIdx + 1}`, name: colName };
+
+        if (valStr === "" || isNaN(numVal)) {
+          errors.push(`Missing or invalid percentage value for subject [${colName}]`);
+        } else if (numVal < 0 || numVal > 100) {
+          errors.push(`Attendance percentage for [${colName}] (${valStr}) must be between 0% and 100%`);
+        } else {
+          sumPercentage += numVal;
+          validSubjectCount++;
+          rowSubjects.push({
+            code: matchedConfig.code || `SUB${sIdx + 1}`,
+            name: matchedConfig.name || colName,
+            classesHeld: 50,
+            classesAttended: Math.round(50 * (numVal / 100)),
+            attendancePct: parseFloat(numVal.toFixed(1))
+          });
+        }
       }
     }
 

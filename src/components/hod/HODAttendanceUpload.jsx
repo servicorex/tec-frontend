@@ -6,6 +6,7 @@ import {
   getSampleValidOverallCSV,
   getSampleProblematicOverallCSV
 } from '../../data/sampleSpreadsheet';
+import { normalizeYear } from '../../data/mockData';
 import { 
   UploadCloud, 
   Download, 
@@ -265,10 +266,11 @@ export default function HODAttendanceUpload() {
 
   // Active section students from registered roster for the HOD's branch
   const activeSectionStudents = useMemo(() => {
+    const targetYr = normalizeYear(context.year);
     return students.filter(s => 
-      s.department === assignedBranch && 
-      s.year === context.year && 
-      s.section === context.section
+      (s.department || s.branch || '').toUpperCase() === assignedBranch.toUpperCase() && 
+      normalizeYear(s.year) === targetYr && 
+      (s.section || 'A').toUpperCase() === (context.section || 'A').toUpperCase()
     );
   }, [students, assignedBranch, context.year, context.section]);
 
