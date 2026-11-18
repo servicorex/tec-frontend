@@ -120,7 +120,7 @@ export default function App() {
           <a href="#main-content" className="skip-link">
             Skip to main content
           </a>
-          <Navbar />
+          {location.pathname !== '/admin' && <Navbar />}
           <main id="main-content" tabIndex="-1" style={{ flex: 1, display: 'flex', flexDirection: 'column', outline: 'none' }}>
             <Suspense fallback={<PageLoadingFallback />}>
               <div key={location.pathname} className="tec-mobile-page-transition">
@@ -250,7 +250,7 @@ export default function App() {
           </div>
         </Suspense>
         </main>
-        <Footer />
+        {location.pathname !== '/admin' && <Footer />}
           <LoginModal />
         </>
       )}
