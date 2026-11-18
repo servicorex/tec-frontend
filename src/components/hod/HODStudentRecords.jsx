@@ -287,13 +287,6 @@ export default function HODStudentRecords() {
                 <Key size={15} style={{ color: '#d97706' }} /> Provision All Pending ({summary.accountsPending})
               </button>
             )}
-            <button 
-              onClick={handleOpenQuickRegister} 
-              className="btn btn-primary"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.84rem' }}
-            >
-              <UserPlus size={16} /> Register New Student
-            </button>
           </div>
         </div>
       </div>
