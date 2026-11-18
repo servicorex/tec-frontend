@@ -155,17 +155,15 @@ export default function HODStudentsAndClasses() {
     showToast(`Section ${cleaned} added to ${assignedBranch} ${selectedYear}!`, "success");
   };
 
-  // Filter students for the chosen Branch -> Year -> Semester -> Section
+  // Filter students for the chosen Branch -> Year -> Section
   const sectionStudents = useMemo(() => {
-    const targetSem = normalizeSemesterCode(selectedSemester);
     const targetYr = normalizeYear(selectedYear);
     return students.filter(s => 
       s.department === selectedBranch && 
       normalizeYear(s.year) === targetYr && 
-      normalizeSemesterCode(s.semester) === targetSem &&
       s.section === selectedSection
     );
-  }, [students, selectedBranch, selectedYear, selectedSemester, selectedSection]);
+  }, [students, selectedBranch, selectedYear, selectedSection]);
 
   // Section Attendance Aggregation & Analytics (Formula: (Total Attended / Total Conducted) * 100)
   const sectionAttendanceMetrics = useMemo(() => {
@@ -518,10 +516,10 @@ export default function HODStudentsAndClasses() {
               <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>All-Semester Attendance & Student Academic Promotion</span>
             </div>
             <h2 style={{ fontSize: '1.35rem', color: '#0e2154', margin: 0 }}>
-              {selectedBranch} — {selectedYear} (Semester {selectedSemester}) • Section {selectedSection}
+              {selectedBranch} — {selectedYear} • Section {selectedSection}
             </h2>
             <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0.35rem 0 0 0' }}>
-              Department attendance oversight, monthly register monitoring, and official academic semester progression for B.Tech students.
+              Department attendance oversight, monthly register monitoring, and student roster management.
             </p>
           </div>
 
@@ -590,32 +588,6 @@ export default function HODStudentsAndClasses() {
                   }}
                 >
                   {yr}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Canonical Semester Selector (1-1 to 4-2) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>Semester:</span>
-            <div style={{ display: 'flex', background: '#f8fafc', padding: '0.2rem', borderRadius: '8px', border: '1px solid #e2e8f0', gap: '0.25rem' }}>
-              {currentSemesters.map(sem => (
-                <button
-                  key={sem.code}
-                  onClick={() => handleSemesterChange(sem.code)}
-                  style={{
-                    padding: '0.35rem 0.85rem',
-                    borderRadius: '6px',
-                    fontSize: '0.8rem',
-                    fontWeight: 700,
-                    border: 'none',
-                    cursor: 'pointer',
-                    background: selectedSemester === sem.code ? '#2563eb' : 'transparent',
-                    color: selectedSemester === sem.code ? '#ffffff' : '#475569',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  Sem {sem.code}
                 </button>
               ))}
             </div>
@@ -715,7 +687,7 @@ export default function HODStudentsAndClasses() {
           </div>
 
           <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
-            Selected: <strong>{assignedBranch} • {selectedYear} (Sem {selectedSemester}) Sec {selectedSection}</strong>
+            Selected: <strong>{assignedBranch} • {selectedYear} • Section {selectedSection}</strong>
           </div>
         </div>
       </div>
@@ -735,10 +707,10 @@ export default function HODStudentsAndClasses() {
                 </div>
                 <div>
                   <h2 style={{ fontSize: '1.25rem', color: '#0e2154', fontWeight: 700, margin: 0 }}>
-                    Overall Semester Attendance
+                    Overall Year Attendance
                   </h2>
                   <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>
-                    Aggregate section attendance for {selectedYear} • Semester {selectedSemester} ({selectedBranch}-{selectedSection}) • {sectionStudents.length} Students
+                    Aggregate section attendance for {selectedYear} ({selectedBranch}-{selectedSection}) • {sectionStudents.length} Students
                   </p>
                 </div>
               </div>
@@ -777,7 +749,7 @@ export default function HODStudentsAndClasses() {
                   {sectionAttendanceMetrics.hasData ? sectionAttendanceMetrics.totalConducted : '—'}
                 </div>
                 <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.2rem' }}>
-                  Total sessions scheduled in Semester {selectedSemester}
+                  Total sessions scheduled in {selectedYear}
                 </div>
               </div>
 
@@ -807,7 +779,7 @@ export default function HODStudentsAndClasses() {
                 </div>
               </div>
 
-              {/* 4. Overall Semester Percentage */}
+              {/* 4. Overall Percentage */}
               <div style={{ 
                 background: !sectionAttendanceMetrics.hasData ? '#f8fafc' : isSectionEligible ? '#f0fdf4' : isSectionCondonation ? '#fffbeb' : '#fef2f2', 
                 padding: '1rem 1.1rem', 
@@ -821,7 +793,7 @@ export default function HODStudentsAndClasses() {
                   textTransform: 'uppercase', 
                   letterSpacing: '0.04em' 
                 }}>
-                  Overall Semester Percentage
+                  Overall Percentage
                 </span>
                 <div style={{ 
                   fontSize: '1.85rem', 
@@ -863,7 +835,7 @@ export default function HODStudentsAndClasses() {
             )}
           </div>
 
-          {/* Card 2: Monthly Attendance Register for Selected Semester */}
+          {/* Card 2: Monthly Attendance Register */}
           <div className="card" style={{ background: '#ffffff', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '1.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
@@ -872,10 +844,10 @@ export default function HODStudentsAndClasses() {
                 </div>
                 <div>
                   <h3 style={{ fontSize: '1.2rem', color: '#0e2154', fontWeight: 700, margin: 0 }}>
-                    Monthly Attendance Register — Semester {selectedSemester}
+                    Monthly Attendance Register
                   </h3>
                   <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>
-                    Section monthly attendance breakdown for {selectedBranch} {selectedYear} (Semester {selectedSemester}) Section {selectedSection}
+                    Section monthly attendance breakdown for {selectedBranch} {selectedYear} Section {selectedSection}
                   </p>
                 </div>
               </div>
@@ -1536,7 +1508,7 @@ export default function HODStudentsAndClasses() {
             <form onSubmit={handleSaveStudent}>
               <div className="modal-body" style={{ padding: '1.5rem' }}>
                 <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '0.75rem 1rem', borderRadius: '8px', fontSize: '0.8rem', color: '#1e40af', marginBottom: '1.25rem' }}>
-                  <strong>Auto-Assigned Section:</strong> Branch: <strong>{selectedBranch}</strong> • Year: <strong>{selectedYear}</strong> (Semester {selectedSemester}) • Section: <strong>Section {selectedSection}</strong>
+                  <strong>Auto-Assigned Section:</strong> Branch: <strong>{selectedBranch}</strong> • Year: <strong>{selectedYear}</strong> • Section: <strong>Section {selectedSection}</strong>
                 </div>
 
                 {addError && (
