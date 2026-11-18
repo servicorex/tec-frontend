@@ -325,12 +325,12 @@ export function AuthProvider({ children }) {
       }
 
       // Check credentials:
-      // 1. Permanent private password set by student
+      // 1. Permanent private password set by student or reset by admin
       const isCustomPassword = found.password && password.trim() === found.password;
       // 2. Temporary password issued through the provisioning process
       const isTempPassword = found.tempPassword && password.trim() === found.tempPassword;
-      // 3. Fallback to roll number if provisioned with default key
-      const isInitialPassword = password.trim().toUpperCase() === found.rollNumber.toUpperCase();
+      // 3. Fallback to roll number if provisioned with default key and neither custom nor temp password is set
+      const isInitialPassword = !found.password && !found.tempPassword && password.trim().toUpperCase() === found.rollNumber.toUpperCase();
 
       if (!isCustomPassword && !isTempPassword && !isInitialPassword) {
         showToast("Incorrect password or temporary access key.", "error");
@@ -1325,7 +1325,8 @@ export function AuthProvider({ children }) {
         if (s.rollNumber.toUpperCase() === cleanId.toUpperCase()) {
           return {
             ...s,
-            tempPassword: newPassword,
+            password: newPassword.trim(),
+            tempPassword: newPassword.trim(),
             mustChangePassword: false,
             accountStatus: ACCOUNT_STATUSES.ACTIVE
           };
