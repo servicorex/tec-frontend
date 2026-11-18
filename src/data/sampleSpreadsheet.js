@@ -17,13 +17,10 @@ export const ATTENDANCE_COLUMNS = [
   "Attendance Percentage"
 ];
 
-// Student Registration columns (Clean, without semester)
+// Student Registration columns: strictly Roll Number and Student Name
 export const STUDENT_REGISTRATION_COLUMNS = [
   "Roll Number",
-  "Student Name",
-  "Branch",
-  "Year",
-  "Section"
+  "Student Name"
 ];
 
 // Generate standard CSV template for a given section & subject
@@ -38,24 +35,20 @@ export function generateAttendanceTemplate(studentsList = [], department = "CSE"
   return rows.join("\n");
 }
 
-// Generate blank multi-column student registration template for batch enrollment (NO fake students)
-export function generateStudentRegistrationTemplate(branch = "CSE", year = "1st Year", section = "A") {
-  // Completely empty template containing only header columns so user can enter actual student details
+// Generate blank registration template with just Roll Number and Student Name
+export function generateStudentRegistrationTemplate() {
   return STUDENT_REGISTRATION_COLUMNS.join(",") + "\n";
 }
 
-// Generate native Excel workbook (.xlsx) for batch student enrollment
-export function generateStudentRegistrationWorkbook(branch = "CSE", year = "1st Year", section = "A") {
+// Generate native Excel workbook (.xlsx) for batch student enrollment (Only Roll Number and Student Name)
+export function generateStudentRegistrationWorkbook() {
   const ws = XLSX.utils.aoa_to_sheet([STUDENT_REGISTRATION_COLUMNS]);
   ws['!cols'] = [
-    { wch: 18 }, // Roll Number
-    { wch: 28 }, // Student Name
-    { wch: 14 }, // Branch
-    { wch: 14 }, // Year
-    { wch: 12 }  // Section
+    { wch: 22 }, // Roll Number
+    { wch: 34 }  // Student Name
   ];
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Student Registration");
+  XLSX.utils.book_append_sheet(wb, ws, "Student Enrollment");
   return wb;
 }
 
@@ -315,16 +308,11 @@ export function parseAndValidateStudentCSV(csvContent, existingStudents = [], co
 
     const rollNumber = (cleanCells[rollIdx] || "").toUpperCase();
     const name = cleanCells[nameIdx] || "";
-    const rawBranch = cleanCells[branchIdx] || context.branch || context.department || "CSE";
-    const rawYear = cleanCells[yearIdx] || context.year || "1st Year";
-    const rawSem = cleanCells[semIdx] || context.semester || "1-1";
-    const rawSec = cleanCells[secIdx] || context.section || "A";
-
-    // Clean & normalize fields
-    const branch = rawBranch.toUpperCase();
-    const year = normalizeYear(rawYear);
-    const semester = normalizeSemesterCode(rawSem);
-    const section = rawSec.replace(/^Sec(tion)?\s*/i, '').trim().toUpperCase() || "A";
+    // Automatically assigned to HOD's active branch, selected year, and section
+    const branch = (context.branch || context.department || "CSE").toUpperCase();
+    const year = normalizeYear(context.year || "1st Year");
+    const semester = normalizeSemesterCode(context.semester || "1-1");
+    const section = (context.section || "A").replace(/^Sec(tion)?\s*/i, '').trim().toUpperCase() || "A";
 
     const errors = [];
 

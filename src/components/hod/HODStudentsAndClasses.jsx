@@ -1612,13 +1612,13 @@ export default function HODStudentsAndClasses() {
             <div className="modal-body" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               
               <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '0.85rem 1rem', borderRadius: '8px', fontSize: '0.82rem', color: '#166534' }}>
-                <strong>Dynamic Section Routing:</strong> Students in the Excel / CSV file are assigned to their respective <strong>Branch, Academic Year, and Section</strong>. If columns are omitted, defaults fall back to the currently active view (<strong>{selectedBranch} — {selectedYear} Section {selectedSection}</strong>). Duplicate roll numbers will be automatically flagged and rejected.
+                <strong>Section Enrollment:</strong> All uploaded students will be directly enrolled into <strong>{assignedBranch} • {selectedYear} • Section {selectedSection}</strong>. You only need to provide their <strong>Roll Number</strong> and <strong>Student Name</strong>; all other profile details are completed by the student.
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', padding: '0.75rem 1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 <div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0e2154' }}>Blank Multi-Column Enrollment Template</div>
-                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Includes Roll Number, Student Name, Branch, Year, Section</div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0e2154' }}>Section Student Enrollment Template</div>
+                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Columns: Roll Number, Student Name</div>
                 </div>
                 <div>
                   <button 
@@ -1638,7 +1638,7 @@ export default function HODStudentsAndClasses() {
                   Select or drag an Excel (.xlsx) or CSV file with student records
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.75rem' }}>
-                  Supported columns: Roll Number, Student Name, Branch, Year, Section
+                  Required Columns: Roll Number, Student Name
                 </div>
                 <input 
                   type="file" 
