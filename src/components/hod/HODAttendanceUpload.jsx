@@ -42,17 +42,52 @@ export default function HODAttendanceUpload() {
   const [currentStep, setCurrentStep] = useState(1);
 
   // Requirement 2: Three default sections: Section A, Section B, Section C + Add Section support
-  const [sections, setSections] = useState(['A', 'B', 'C']);
+  const [sections, setSections] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`tec_upload_sections_${assignedBranch}`);
+      return saved ? JSON.parse(saved) : ['A', 'B', 'C'];
+    } catch {
+      return ['A', 'B', 'C'];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`tec_upload_sections_${assignedBranch}`, JSON.stringify(sections));
+    } catch (e) {
+      console.warn("Storage sync error", e);
+    }
+  }, [sections, assignedBranch]);
+
   const [newSectionInput, setNewSectionInput] = useState('');
   const [showAddSectionModal, setShowAddSectionModal] = useState(false);
 
   // Requirement 1: Attendance Period – Dynamic & Manual Entry (No hardcoded months)
   const currentMonthName = new Date().toLocaleString('en-US', { month: 'long' });
   const currentYearNum = new Date().getFullYear();
-  const [attendancePeriods, setAttendancePeriods] = useState([
-    `${currentMonthName} ${currentYearNum}`,
-    `Semester Cumulative ${currentYearNum}-${(currentYearNum + 1).toString().slice(2)}`
-  ]);
+  const [attendancePeriods, setAttendancePeriods] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`tec_periods_${assignedBranch}`);
+      return saved ? JSON.parse(saved) : [
+        `${currentMonthName} ${currentYearNum}`,
+        `Semester Cumulative ${currentYearNum}-${(currentYearNum + 1).toString().slice(2)}`
+      ];
+    } catch {
+      return [
+        `${currentMonthName} ${currentYearNum}`,
+        `Semester Cumulative ${currentYearNum}-${(currentYearNum + 1).toString().slice(2)}`
+      ];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`tec_periods_${assignedBranch}`, JSON.stringify(attendancePeriods));
+    } catch (e) {
+      console.warn("Storage sync error", e);
+    }
+  }, [attendancePeriods, assignedBranch]);
+
   const [showAddPeriodModal, setShowAddPeriodModal] = useState(false);
   const [periodForm, setPeriodForm] = useState({
     mode: 'monthly', // 'monthly' | 'cumulative' | 'custom'
@@ -70,7 +105,7 @@ export default function HODAttendanceUpload() {
     period: `${currentMonthName} ${currentYearNum}`
   });
 
-  // Requirement 2: Manage ALL subjects for selected academic year and semester
+  // Requirement 2: Manage ALL subjects for selected academic year with LocalStorage persistence
   const DEFAULT_CURRICULUM = {
     'I Year': [
       { code: 'CS101PC', name: 'Programming in C' },
@@ -98,7 +133,22 @@ export default function HODAttendanceUpload() {
     ]
   };
 
-  const [subjectsByYear, setSubjectsByYear] = useState(DEFAULT_CURRICULUM);
+  const [subjectsByYear, setSubjectsByYear] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`tec_curriculum_${assignedBranch}`);
+      return saved ? JSON.parse(saved) : DEFAULT_CURRICULUM;
+    } catch {
+      return DEFAULT_CURRICULUM;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`tec_curriculum_${assignedBranch}`, JSON.stringify(subjectsByYear));
+    } catch (e) {
+      console.warn("Curriculum storage sync error", e);
+    }
+  }, [subjectsByYear, assignedBranch]);
   const [newSubjectCode, setNewSubjectCode] = useState('');
   const [newSubjectName, setNewSubjectName] = useState('');
   const [showAddSubjectForm, setShowAddSubjectForm] = useState(false);
@@ -439,16 +489,16 @@ export default function HODAttendanceUpload() {
             {/* Academic Year, Section & Period */}
             <div className="grid-3" style={{ gap: '1rem' }}>
               <div className="form-group">
-                <label className="form-label" style={{ fontWeight: 600 }}>Academic Year & Semester</label>
+                <label className="form-label" style={{ fontWeight: 600 }}>Academic Year</label>
                 <select 
                   className="form-select"
                   value={context.year}
                   onChange={(e) => handleYearChange(e.target.value)}
                 >
-                  <option value="I Year">I Year (I Semester)</option>
-                  <option value="II Year">II Year (III Semester)</option>
-                  <option value="III Year">III Year (V Semester)</option>
-                  <option value="IV Year">IV Year (VII Semester)</option>
+                  <option value="I Year">I Year</option>
+                  <option value="II Year">II Year</option>
+                  <option value="III Year">III Year</option>
+                  <option value="IV Year">IV Year</option>
                 </select>
               </div>
 

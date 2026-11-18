@@ -326,94 +326,15 @@ export const getStudentSemesterAttendance = (student, semCode) => {
   };
 };
 
-export const INITIAL_STUDENTS = [
-  {
-    id: "std-23NE1A05K3",
-    rollNumber: "23NE1A05K3",
-    name: "RANGISETTY VEDA VENKATA RAJEEVAN",
-    shortName: "193",
-    course: "B.Tech",
-    department: "CSE",
-    branch: "CSE",
-    year: "4th Year",
-    semester: "Sem 4-1",
-    section: "A",
-    admissionNumber: "2023CSE205",
-    dob: "2006-02-18",
-    gender: "Male",
-    bloodGroup: "O+",
-    phone: "9848704567",
-    email: "swapnarangisetty@gmail.com",
-    fatherPhone: "9912182938",
-    fatherEmail: "23NE1A05K3@tecnrt.org",
-    currentAddress: "Narasaraopet, Palnadu District",
-    permanentAddress: "Narasaraopet, Palnadu District",
-    fatherName: "RANGISETTY RAMAKRISHNA",
-    fatherOccupation: "",
-    motherName: "",
-    motherOccupation: "",
-    guardianName: "",
-    guardianContact: "",
-    admissionYear: "2023",
-    admissionDate: "2023-09-06",
-    admissionType: "MANAGEMENT QUOTA",
-    admissionQuota: "MANAGEMENT QUOTA",
-    casteCategory: "OC",
-    scholarshipStatus: "Not Eligible",
-    feeReimbursementStatus: "No",
-    profileStatus: PROFILE_STATUSES.COMPLETE,
-    profileCompletion: 85,
-    cgpa: 0.00,
-    sgpaLast: 0.00,
-    attendanceOverall: 0.0,
-    status: "Active",
-    accountSetup: true,
-    accountStatus: "ACTIVE",
-    tempPassword: "23NE1A05K3",
-    mustChangePassword: false,
-    provisionedAt: "2023-09-06",
-    totalClassesHeld: 0,
-    totalClassesAttended: 0,
-    totalClassesAbsent: 0,
-    monthlyAttendance: [],
-    feeStatus: "Paid",
-    feeDue: 0,
-    totalFee: 0,
-    semesterAttendance: {}
-  }
-];
+export const INITIAL_STUDENTS = [];
 
 export const INITIAL_EXAM_TIMETABLES = [];
 
-export const STUDENT_SUBJECTS = {
-  "23NE1A05K3": []
-};
+export const STUDENT_SUBJECTS = {};
 
-export const STUDENT_EXAMS = {
-  "23NE1A05K3": {
-    currentSemester: "B.Tech IV-I Regular (JNTUK R20)",
-    examStatus: "No Active Schedule",
-    hallTicketNo: "23NE1A05K3",
-    centerName: "Tirumala Engineering College, Narasaraopet (Center Code: TMLN)",
-    schedule: [],
-    supplementaryRecords: [],
-    openSupplies: []
-  }
-};
+export const STUDENT_EXAMS = {};
 
-export const STUDENT_FEES = {
-  "23NE1A05K3": {
-    academicYear: "2023-2024",
-    studentName: "RANGISETTY VEDA VENKATA RAJEEVAN",
-    rollNumber: "23NE1A05K3",
-    department: "CSE - IV-I SEM",
-    totalAnnualFee: 0,
-    paidAmount: 0,
-    dueAmount: 0,
-    items: [],
-    transactions: []
-  }
-};
+export const STUDENT_FEES = {};
 
 export const FACULTY_MEMBERS = [];
 

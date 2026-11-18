@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Users, 
@@ -58,13 +58,33 @@ export default function HODStudentsAndClasses() {
   // Active sub-view toggle: 'attendance' (Overview & Register) vs 'roster' (Directory & Promotion)
   const [activeSubTab, setActiveSubTab] = useState('attendance'); // 'attendance' | 'roster'
 
-  // Section Management
-  const [sectionsByYear, setSectionsByYear] = useState({
-    '1st Year': ['A', 'B', 'C'],
-    '2nd Year': ['A', 'B', 'C'],
-    '3rd Year': ['A', 'B', 'C'],
-    '4th Year': ['A', 'B', 'C']
+  // Section Management with LocalStorage persistence
+  const [sectionsByYear, setSectionsByYear] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`tec_sections_${assignedBranch}`);
+      return saved ? JSON.parse(saved) : {
+        '1st Year': ['A', 'B', 'C'],
+        '2nd Year': ['A', 'B', 'C'],
+        '3rd Year': ['A', 'B', 'C'],
+        '4th Year': ['A', 'B', 'C']
+      };
+    } catch {
+      return {
+        '1st Year': ['A', 'B', 'C'],
+        '2nd Year': ['A', 'B', 'C'],
+        '3rd Year': ['A', 'B', 'C'],
+        '4th Year': ['A', 'B', 'C']
+      };
+    }
   });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`tec_sections_${assignedBranch}`, JSON.stringify(sectionsByYear));
+    } catch (e) {
+      console.warn("Section storage sync error", e);
+    }
+  }, [sectionsByYear, assignedBranch]);
   const [showAddSectionModal, setShowAddSectionModal] = useState(false);
   const [newSectionInput, setNewSectionInput] = useState('');
 

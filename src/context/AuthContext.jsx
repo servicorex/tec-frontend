@@ -59,15 +59,16 @@ export function AuthProvider({ children }) {
   const [students, setStudents] = useState(() => {
     try {
       const v = localStorage.getItem('tec_students_version');
-      if (v !== 'v2') {
-        localStorage.setItem('tec_students_version', 'v2');
-        localStorage.setItem('tec_students', JSON.stringify(INITIAL_STUDENTS));
-        return INITIAL_STUDENTS;
+      if (v !== 'v3_empty') {
+        localStorage.setItem('tec_students_version', 'v3_empty');
+        localStorage.setItem('tec_students', JSON.stringify([]));
+        localStorage.removeItem('tec_upload_history');
+        return [];
       }
       const saved = localStorage.getItem('tec_students');
-      return saved ? JSON.parse(saved) : INITIAL_STUDENTS;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return INITIAL_STUDENTS;
+      return [];
     }
   });
 
