@@ -1,7 +1,9 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import * as XLSX from 'xlsx';
 import { 
   generateOverallAttendanceTemplate, 
+  generateOverallAttendanceWorkbook,
   parseAndValidateOverallAttendanceCSV,
   getSampleValidOverallCSV,
   getSampleProblematicOverallCSV
@@ -284,10 +286,10 @@ export default function HODAttendanceUpload() {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
 
-  // Requirement 3: Download section-specific CSV template populated with current subjects
+  // Download section-specific template as genuine Excel (.xlsx) with styled auto-fit columns
   const handleDownloadTemplate = () => {
     const classLabel = `${context.year} ${assignedBranch}-${context.section}`;
-    const csvData = generateOverallAttendanceTemplate(
+    const wb = generateOverallAttendanceWorkbook(
       activeSectionStudents,
       currentSubjects,
       assignedBranch,
@@ -295,15 +297,9 @@ export default function HODAttendanceUpload() {
       context.period
     );
 
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Attendance_${assignedBranch}_${context.year.replace(/\s+/g, '')}_Sec${context.section}_${context.period.replace(/\s+/g, '_')}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast(`Downloaded template with ${currentSubjects.length} subjects for ${assignedBranch} Sec ${context.section}!`, "success");
+    const fileName = `Attendance_${assignedBranch}_${context.year.replace(/\s+/g, '')}_Sec${context.section}_${context.period.replace(/\s+/g, '_')}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    showToast(`Downloaded formatted Excel template with ${currentSubjects.length} subjects for ${assignedBranch} Sec ${context.section}!`, "success");
   };
 
   // Process Overall CSV
@@ -330,16 +326,38 @@ export default function HODAttendanceUpload() {
     }
   };
 
+  // Helper to extract CSV text whether the uploaded file is .xlsx, .xls, or .csv
+  const readUploadedFile = (file) => {
+    const isExcel = file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls');
+    const reader = new FileReader();
+
+    if (isExcel) {
+      reader.onload = (event) => {
+        try {
+          const data = new Uint8Array(event.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const csvText = XLSX.utils.sheet_to_csv(worksheet);
+          processCSV(file.name, csvText, file);
+        } catch (err) {
+          showToast("Failed to parse Excel workbook. Please verify file integrity.", "error");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      reader.onload = (event) => {
+        processCSV(file.name, event.target.result, file);
+      };
+      reader.readAsText(file);
+    }
+  };
+
   // File upload input handler
   const handleFileInputChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      processCSV(file.name, event.target.result, file);
-    };
-    reader.readAsText(file);
-    // Reset file input value so re-selecting same file triggers change
+    readUploadedFile(file);
     e.target.value = '';
   };
 
@@ -349,15 +367,12 @@ export default function HODAttendanceUpload() {
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
-      if (!file.name.toLowerCase().endsWith('.csv')) {
-        showToast("Please upload a valid comma-separated (*.csv) file.", "error");
+      const validExts = ['.csv', '.xlsx', '.xls'];
+      if (!validExts.some(ext => file.name.toLowerCase().endsWith(ext))) {
+        showToast("Please upload a valid Excel (*.xlsx) or CSV file.", "error");
         return;
       }
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        processCSV(file.name, event.target.result, file);
-      };
-      reader.readAsText(file);
+      readUploadedFile(file);
     }
   };
 
@@ -678,7 +693,7 @@ export default function HODAttendanceUpload() {
                 className="btn btn-sm btn-outline"
                 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', borderColor: '#0a3d78', color: '#0a3d78', fontWeight: 600 }}
               >
-                <Download size={14} /> Download Overall Attendance CSV Template
+                <Download size={14} /> Download Section Excel Template (.xlsx)
               </button>
             </div>
           </div>
@@ -690,14 +705,14 @@ export default function HODAttendanceUpload() {
               Step 2: Upload Completed Section Attendance File
             </h3>
             <p style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '1.25rem' }}>
-              Upload the CSV sheet containing attendance for all {currentSubjects.length} subjects. The system will match students by roll number, enforce section boundaries, and compute overall attendance.
+              Upload the completed Excel sheet (.xlsx) or CSV containing attendance for all {currentSubjects.length} subjects. The system automatically computes overall percentages and detention metrics.
             </p>
 
             {/* Hidden native input */}
             <input 
               ref={fileInputRef}
               type="file" 
-              accept=".csv,text/csv" 
+              accept=".xlsx,.xls,.csv" 
               onChange={handleFileInputChange}
               style={{ display: 'none' }}
             />

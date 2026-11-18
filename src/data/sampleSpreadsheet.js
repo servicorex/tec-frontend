@@ -1,4 +1,5 @@
 // Attendance Spreadsheet Helpers, Template Generator, and Validation Engine (PRD Section 6)
+import * as XLSX from 'xlsx';
 import { INITIAL_STUDENTS, normalizeYear, normalizeSemesterCode } from './mockData.js';
 
 export const ATTENDANCE_COLUMNS = [
@@ -368,6 +369,56 @@ export function parseAndValidateStudentCSV(csvContent, existingStudents = [], co
   };
 }
 
+// Generate Overall Attendance Template (Native Excel .xlsx & CSV with proper column widths)
+export function generateOverallAttendanceWorkbook(
+  studentsList = [],
+  subjects = [],
+  department = "CSE",
+  classSection = "II Year CSE-A",
+  period = "November 2026"
+) {
+  // 1. Roll Number and Student Name
+  const headers = ["Roll Number", "Student Name"];
+  subjects.forEach(s => {
+    const label = s.name || s.code;
+    headers.push(`${label} (Attended)`);
+    headers.push(`${label} (Total Held)`);
+  });
+
+  const data = [headers];
+
+  if (studentsList && studentsList.length > 0) {
+    studentsList.forEach(s => {
+      const row = [s.rollNumber, s.name];
+      subjects.forEach(() => {
+        row.push(42); // Sample attended classes
+        row.push(50); // Sample conducted classes
+      });
+      data.push(row);
+    });
+  } else {
+    const deptCode = department === 'CSE' ? '05' : department === 'ECE' ? '04' : department === 'EEE' ? '02' : department === 'IT' ? '12' : '05';
+    data.push([`23NE1A${deptCode}01`, "Sample Student 1", ...subjects.flatMap(() => [44, 50])]);
+    data.push([`23NE1A${deptCode}02`, "Sample Student 2", ...subjects.flatMap(() => [46, 50])]);
+  }
+
+  const ws = XLSX.utils.aoa_to_sheet(data);
+
+  // Set professional auto column widths so text is never truncated in Excel
+  ws['!cols'] = [
+    { wch: 18 }, // Roll Number
+    { wch: 28 }, // Student Name
+    ...subjects.flatMap(s => [
+      { wch: Math.max(16, ((s.name || s.code).length + 12)) },
+      { wch: Math.max(16, ((s.name || s.code).length + 14)) }
+    ])
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Attendance Sheet");
+  return wb;
+}
+
 // Generate Overall Attendance CSV Template with Subject Classes Conducted vs Attended
 export function generateOverallAttendanceTemplate(
   studentsList = [],
@@ -376,14 +427,12 @@ export function generateOverallAttendanceTemplate(
   classSection = "IV Year CSE-A",
   period = "October 2026"
 ) {
-  // Each subject column will represent "Conducted / Attended" (e.g. "Maths [40]") or conducted in row header
   const headers = ["Roll Number", "Student Name"];
   subjects.forEach(s => {
     const label = s.name || s.code;
     headers.push(`${label} (Attended)`);
     headers.push(`${label} (Total Held)`);
   });
-  headers.push("Overall Percentage");
 
   let rows = [];
   if (studentsList && studentsList.length > 0) {
@@ -393,15 +442,14 @@ export function generateOverallAttendanceTemplate(
         vals.push("42"); // Sample attended classes
         vals.push("50"); // Sample conducted classes
       });
-      vals.push("84.0%");
       return `"${s.rollNumber}","${s.name}",${vals.join(",")}`;
     });
   } else {
     // Generate helpful template structure showing Conducted vs Attended
     const deptCode = department === 'CSE' ? '05' : department === 'ECE' ? '04' : department === 'EEE' ? '02' : department === 'IT' ? '12' : '05';
     rows = [
-      `"23NE1A${deptCode}01","Sample Student 1",${subjects.map(() => "44,50").join(",")},"88.0%"`,
-      `"23NE1A${deptCode}02","Sample Student 2",${subjects.map(() => "46,50").join(",")},"92.0%"`
+      `"23NE1A${deptCode}01","Sample Student 1",${subjects.map(() => "44,50").join(",")}`,
+      `"23NE1A${deptCode}02","Sample Student 2",${subjects.map(() => "46,50").join(",")}`
     ];
   }
   return [headers.join(","), ...rows].join("\n");
