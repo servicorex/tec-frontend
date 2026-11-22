@@ -59,7 +59,23 @@ export function AuthProvider({ children }) {
     }
   });
 
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTabState] = useState(() => {
+    try {
+      const savedTab = sessionStorage.getItem('tec_active_tab');
+      if (savedTab) return savedTab;
+    } catch {}
+    const role = currentUser?.role;
+    if (role === 'principal') return 'college-overview';
+    if (role === 'hod') return 'department-overview';
+    return 'overview';
+  });
+
+  const setActiveTab = (tab) => {
+    setActiveTabState(tab);
+    try {
+      sessionStorage.setItem('tec_active_tab', tab);
+    } catch {}
+  };
 
   const [students, setStudents] = useState(() => {
     try {
@@ -332,9 +348,7 @@ export function AuthProvider({ children }) {
             },
             mustChangePassword: false
           });
-          setActiveTab('overview');
-          setLoginModalOpen(false);
-          showToast("Welcome Principal / College Administrator!", "success");
+          setActiveTab('college-overview');
           return { success: true };
         }
       }
@@ -466,6 +480,7 @@ export function AuthProvider({ children }) {
     });
     sessionStorage.removeItem('tec_current_user');
     sessionStorage.removeItem('tec_auth_token');
+    sessionStorage.removeItem('tec_active_tab');
     localStorage.removeItem('tec_current_user');
     localStorage.removeItem('tec_auth_token');
     setCurrentUser({
@@ -479,11 +494,11 @@ export function AuthProvider({ children }) {
   };
 
   // Change password method
-  const updatePassword = async (newPassword) => {
+  const updatePassword = async (newPassword, currentPassword) => {
     try {
       // If student is logged in, use backend change-password endpoint
-      const currentPassword = currentUser.profile?.rollNumber || newPassword;
-      await authApi.changePassword(currentPassword, newPassword);
+      const curPwd = currentPassword || currentUser.profile?.rollNumber || newPassword;
+      await authApi.changePassword(curPwd, newPassword);
       showToast("Password updated in database successfully!", "success");
     } catch (err) {
       console.warn("Backend change password note:", err.message);
@@ -504,6 +519,21 @@ export function AuthProvider({ children }) {
           password: newPassword,
           accountStatus: "ACTIVE",
           mustChangePassword: false
+        }
+      }));
+    } else if (currentUser.role === 'hod' && currentUser.profile) {
+      const deptId = (currentUser.profile.department || '').toUpperCase();
+      setDepartments(prev => prev.map(d => 
+        d.id.toUpperCase() === deptId
+          ? { ...d, password: newPassword }
+          : d
+      ));
+      setCurrentUser(prev => ({
+        ...prev,
+        mustChangePassword: false,
+        profile: {
+          ...prev.profile,
+          password: newPassword
         }
       }));
     } else {
@@ -1391,6 +1421,43 @@ export function AuthProvider({ children }) {
     return { success: true };
   };
 
+  // Create new Academic Branch / Department (Principal Authority)
+  const createDepartment = ({ id, name, code, hod, hodEmail, password, description, intake = 60, icon = "BookOpen" }) => {
+    const cleanId = (id || code || '').trim().toUpperCase();
+    if (!cleanId) {
+      showToast("Branch ID / Code is required.", "error");
+      return { success: false, message: "Missing branch code" };
+    }
+
+    const exists = departments.some(d => d.id.toUpperCase() === cleanId);
+    if (exists) {
+      showToast(`Branch / Department ${cleanId} already exists!`, "error");
+      return { success: false, message: "Department already exists" };
+    }
+
+    const newDept = {
+      id: cleanId,
+      code: cleanId,
+      name: (name || `${cleanId} Engineering`).trim(),
+      hod: (hod || `Dr. ${cleanId} HOD`).trim(),
+      hodEmail: (hodEmail || `hod.${cleanId.toLowerCase()}@tecnrt.org`).trim().toLowerCase(),
+      password: password || `HOD_${cleanId}#2026`,
+      description: description || `Department of ${name || cleanId} at Tirumala Engineering College.`,
+      intake: parseInt(intake, 10) || 60,
+      icon: icon || "BookOpen"
+    };
+
+    setDepartments(prev => [...prev, newDept]);
+    logAction({
+      action: "DEPARTMENT_CREATED",
+      details: `Principal created new academic department: ${newDept.name} (${newDept.id}) with HOD ${newDept.hod}`,
+      affectedClass: `${newDept.id} Department`
+    });
+
+    showToast(`New Department ${newDept.id} (${newDept.name}) successfully registered!`, "success");
+    return { success: true, department: newDept };
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -1413,6 +1480,8 @@ export function AuthProvider({ children }) {
         promoteStudent,
         batchPromoteStudents,
         departments,
+        setDepartments,
+        createDepartment,
         assignOrUpdateHOD,
         adminForcedPasswordReset,
         facultyList,

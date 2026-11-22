@@ -75,7 +75,7 @@ export default function StudentDashboard() {
 
         {/* Main Dashboard Content Area */}
         <main style={{ flex: 1, minWidth: 0 }}>
-          {activeTab === 'overview' && <StudentOverview />}
+          {(activeTab === 'overview' || !['profile', 'attendance', 'exams', 'fees', 'settings'].includes(activeTab)) && <StudentOverview />}
           {activeTab === 'profile' && <StudentProfile />}
           {activeTab === 'attendance' && <AttendanceView />}
           {activeTab === 'exams' && <ExaminationsView />}

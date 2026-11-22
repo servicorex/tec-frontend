@@ -3,18 +3,60 @@ import { useAuth } from '../../context/AuthContext';
 import { UserCheck, Mail, Phone, Building2, CheckCircle2, UserPlus, KeyRound, X, ShieldAlert, Key } from 'lucide-react';
 
 export default function PrincipalHODManagement() {
-  const { showToast, students = [], facultyList = [], departments = [], assignOrUpdateHOD, adminForcedPasswordReset } = useAuth();
+  const { showToast, students = [], facultyList = [], departments = [], assignOrUpdateHOD, adminForcedPasswordReset, createDepartment } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddBranchModalOpen, setIsAddBranchModalOpen] = useState(false);
   const [selectedDeptForEdit, setSelectedDeptForEdit] = useState(null);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [resetTargetUser, setResetTargetUser] = useState(null);
   const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [branchFormData, setBranchFormData] = useState({
+    code: '',
+    name: '',
+    hodName: '',
+    hodEmail: '',
+    initialPassword: '',
+    intake: 60
+  });
   const [formData, setFormData] = useState({
     departmentId: 'CSE',
     hodName: '',
     hodEmail: '',
     initialPassword: ''
   });
+
+  const handleOpenAddBranchModal = () => {
+    setBranchFormData({
+      code: '',
+      name: '',
+      hodName: '',
+      hodEmail: '',
+      initialPassword: '',
+      intake: 60
+    });
+    setIsAddBranchModalOpen(true);
+  };
+
+  const handleSaveNewBranch = (e) => {
+    e.preventDefault();
+    const code = branchFormData.code.trim().toUpperCase();
+    if (!code) {
+      showToast("Please provide a branch code (e.g. CSBS, CYBER, IOT).", "warning");
+      return;
+    }
+    const res = createDepartment({
+      id: code,
+      code: code,
+      name: branchFormData.name.trim() || `${code} Engineering`,
+      hod: branchFormData.hodName.trim() || `Dr. ${code} HOD`,
+      hodEmail: branchFormData.hodEmail.trim() || `hod.${code.toLowerCase()}@tecnrt.org`,
+      password: branchFormData.initialPassword.trim() || `HOD_${code}#2026`,
+      intake: parseInt(branchFormData.intake, 10) || 60
+    });
+    if (res.success) {
+      setIsAddBranchModalOpen(false);
+    }
+  };
 
   const handleOpenAssignModal = (dept = null) => {
     if (dept) {
@@ -79,13 +121,22 @@ export default function PrincipalHODManagement() {
           </p>
         </div>
 
-        <button 
-          onClick={() => handleOpenAssignModal()}
-          className="btn btn-primary"
-          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-        >
-          <UserPlus size={16} /> Provision / Reassign HOD
-        </button>
+        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+          <button 
+            onClick={handleOpenAddBranchModal}
+            className="btn btn-outline"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', borderColor: '#d97706', color: '#b45309', background: '#fffbeb' }}
+          >
+            <Building2 size={16} /> + Add New Branch / Department
+          </button>
+          <button 
+            onClick={() => handleOpenAssignModal()}
+            className="btn btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+          >
+            <UserPlus size={16} /> Provision / Reassign HOD
+          </button>
+        </div>
       </div>
 
       {/* HOD Cards Grid */}
@@ -296,6 +347,126 @@ export default function PrincipalHODManagement() {
                 </button>
                 <button type="submit" className="btn btn-primary" style={{ background: '#d97706', borderColor: '#d97706' }}>
                   Forcibly Update Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: ADD NEW BRANCH / DEPARTMENT */}
+      {isAddBranchModalOpen && (
+        <div className="modal-backdrop" onClick={() => setIsAddBranchModalOpen(false)}>
+          <div className="modal-dialog" style={{ maxWidth: '480px', background: '#ffffff' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Building2 size={20} style={{ color: '#d97706' }} />
+                <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0e2154' }}>
+                  Create New Branch / Department
+                </h3>
+              </div>
+              <button className="btn-icon" onClick={() => setIsAddBranchModalOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveNewBranch}>
+              <div className="modal-body" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: '#ffffff' }}>
+                
+                <div style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.75rem', borderRadius: '8px', fontSize: '0.8rem', color: '#92400e' }}>
+                  <strong>New Engineering Branch:</strong> Adding a new department registers it across the college portal, enabling HOD assignment, student admissions, and attendance tracking.
+                </div>
+
+                <div className="grid-2">
+                  <div className="form-group">
+                    <label className="form-label">Branch Code / Acronym</label>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      required
+                      placeholder="e.g. CSBS, CYBER, IOT"
+                      value={branchFormData.code}
+                      onChange={e => {
+                        const val = e.target.value.toUpperCase();
+                        setBranchFormData(prev => ({
+                          ...prev,
+                          code: val,
+                          hodEmail: prev.hodEmail || `hod.${val.toLowerCase()}@tecnrt.org`,
+                          initialPassword: prev.initialPassword || `HOD_${val}#2026`
+                        }));
+                      }}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Sanctioned Annual Intake</label>
+                    <input 
+                      type="number" 
+                      className="form-input" 
+                      min="30"
+                      max="300"
+                      step="30"
+                      value={branchFormData.intake}
+                      onChange={e => setBranchFormData({ ...branchFormData, intake: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Full Department Name</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    required
+                    placeholder="e.g. Computer Science & Business Systems"
+                    value={branchFormData.name}
+                    onChange={e => setBranchFormData({ ...branchFormData, name: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Appointed HOD Name</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    required
+                    placeholder="e.g. Dr. A. V. Ramana"
+                    value={branchFormData.hodName}
+                    onChange={e => setBranchFormData({ ...branchFormData, hodName: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">HOD Institutional Email (Login ID)</label>
+                  <input 
+                    type="email" 
+                    className="form-input" 
+                    required
+                    placeholder="e.g. hod.csbs@tecnrt.org"
+                    value={branchFormData.hodEmail}
+                    onChange={e => setBranchFormData({ ...branchFormData, hodEmail: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Initial Password / Security Key</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    required
+                    placeholder="e.g. HOD_CSBS#2026"
+                    value={branchFormData.initialPassword}
+                    onChange={e => setBranchFormData({ ...branchFormData, initialPassword: e.target.value })}
+                  />
+                </div>
+
+              </div>
+
+              <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', padding: '1rem 1.25rem', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setIsAddBranchModalOpen(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary" style={{ background: '#d97706', borderColor: '#d97706' }}>
+                  Register Branch & HOD
                 </button>
               </div>
             </form>

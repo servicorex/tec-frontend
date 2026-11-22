@@ -69,7 +69,7 @@ export default function PrincipalDashboard() {
 
         {/* Main Dashboard Content Area */}
         <main style={{ flex: 1, minWidth: 0 }}>
-          {(activeTab === 'college-overview') && <PrincipalOverview />}
+          {(activeTab === 'college-overview' || !['hod-management', 'dept-management', 'faculty-overview', 'student-overview'].includes(activeTab)) && <PrincipalOverview />}
           {(activeTab === 'hod-management' || activeTab === 'dept-management') && <PrincipalHODManagement />}
           {activeTab === 'faculty-overview' && <PrincipalFacultyOverview />}
           {activeTab === 'student-overview' && <PrincipalStudentOverview />}

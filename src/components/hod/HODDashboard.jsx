@@ -78,7 +78,7 @@ export default function HODDashboard() {
 
         {/* Main Dashboard Content Area */}
         <main style={{ flex: 1, minWidth: 0 }}>
-          {activeTab === 'department-overview' && <HODOverview />}
+          {(activeTab === 'department-overview' || !['student-records', 'students-classes', 'attendance-upload', 'faculty-management', 'monthly-reports', 'settings'].includes(activeTab)) && <HODOverview />}
           {activeTab === 'student-records' && <HODStudentRecords />}
           {activeTab === 'students-classes' && <HODStudentsAndClasses />}
           {activeTab === 'attendance-upload' && <HODAttendanceUpload />}

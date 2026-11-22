@@ -20,7 +20,7 @@ export default function HODSettings() {
       showToast("Passwords do not match.", "error");
       return;
     }
-    updatePassword(newPwd);
+    updatePassword(newPwd, currentPwd);
     setCurrentPwd('');
     setNewPwd('');
     setConfirmPwd('');

@@ -23,7 +23,7 @@ export default function StudentSettings() {
       showToast("Passwords do not match.", "error");
       return;
     }
-    updatePassword(newPwd);
+    updatePassword(newPwd, currentPwd);
     setCurrentPwd('');
     setNewPwd('');
     setConfirmPwd('');
