@@ -24,9 +24,14 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   // Current user / active view
   // role: 'public' | 'student' | 'hod' | 'principal' (Faculty completely removed)
+  // Sessions are stored in sessionStorage so closing the tab/browser automatically ends the session.
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      const savedUser = localStorage.getItem('tec_current_user');
+      // Clean up any legacy persistent localStorage session to prevent auto-login
+      localStorage.removeItem('tec_current_user');
+      localStorage.removeItem('tec_auth_token');
+
+      const savedUser = sessionStorage.getItem('tec_current_user');
       if (savedUser) {
         const parsed = JSON.parse(savedUser);
         if (parsed?.isAuthenticated && parsed?.role && parsed.role !== 'public') {
@@ -115,9 +120,9 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     try {
       if (currentUser?.isAuthenticated && currentUser.role !== 'public') {
-        localStorage.setItem('tec_current_user', JSON.stringify(currentUser));
+        sessionStorage.setItem('tec_current_user', JSON.stringify(currentUser));
       } else {
-        localStorage.removeItem('tec_current_user');
+        sessionStorage.removeItem('tec_current_user');
       }
     } catch (e) {
       console.warn("Storage sync error", e);
@@ -459,6 +464,8 @@ export function AuthProvider({ children }) {
       action: "USER_LOGOUT",
       details: `${currentUser.profile?.name || "User"} signed out`
     });
+    sessionStorage.removeItem('tec_current_user');
+    sessionStorage.removeItem('tec_auth_token');
     localStorage.removeItem('tec_current_user');
     localStorage.removeItem('tec_auth_token');
     setCurrentUser({
