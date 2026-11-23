@@ -117,11 +117,13 @@ export default function HODStudentsAndClasses() {
   // 10-Second Safety Confirmation Modal for Deleting Non-Empty Sections
   const [deleteWarningModal, setDeleteWarningModal] = useState(null); // { sec: string, count: number }
   const [deleteCountdown, setDeleteCountdown] = useState(10);
+  const [awareCheckbox, setAwareCheckbox] = useState(false);
 
   useEffect(() => {
     let timer = null;
     if (deleteWarningModal) {
       setDeleteCountdown(10);
+      setAwareCheckbox(false);
       timer = setInterval(() => {
         setDeleteCountdown(prev => {
           if (prev <= 1) {
@@ -2003,77 +2005,149 @@ export default function HODStudentsAndClasses() {
         </div>
       )}
 
-      {/* PROVISIONED ACCOUNT MODAL */}
+      {/* DANGER SAFETY CONFIRMATION MODAL (AUTHENTIC REDMI / HYPEROS STYLE) */}
       {deleteWarningModal && (
-        <div className="modal-backdrop" style={{ zIndex: 10000 }}>
-          <div className="modal-dialog" style={{ maxWidth: '440px', border: '2px solid #ef4444', borderRadius: '14px', overflow: 'hidden' }}>
-            <div className="modal-header" style={{ background: '#b91c1c', color: '#ffffff', padding: '1.25rem 1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <AlertTriangle size={22} style={{ color: '#fef08a' }} />
-                <h3 style={{ fontSize: '1.15rem', color: '#ffffff', margin: 0, fontWeight: 700 }}>
-                  Warning: Critical Action
-                </h3>
+        <div 
+          className="modal-backdrop" 
+          style={{ 
+            zIndex: 10000, 
+            background: 'rgba(0, 0, 0, 0.72)', 
+            backdropFilter: 'blur(6px)' 
+          }}
+        >
+          <div 
+            style={{ 
+              maxWidth: '380px', 
+              width: '90%', 
+              background: '#2b2b2b', 
+              color: '#ffffff', 
+              borderRadius: '26px', 
+              padding: '2rem 1.6rem 1.6rem 1.6rem', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              boxShadow: '0 20px 45px rgba(0,0,0,0.6)',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif'
+            }}
+          >
+            {/* Red Warning Triangle Icon */}
+            <div style={{ position: 'relative', width: '56px', height: '56px', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="56" height="50" viewBox="0 0 56 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24.5359 3C26.0755 0.333333 29.9245 0.333335 31.4641 3L54.8468 43.5C56.3864 46.1667 54.4619 49.5 51.3827 49.5H4.61731C1.53811 49.5 -0.386401 46.1667 1.1532 43.5L24.5359 3Z" fill="#ff3b30"/>
+                <rect x="26" y="16" width="4" height="16" rx="2" fill="white"/>
+                <circle cx="28" cy="38" r="2.5" fill="white"/>
+              </svg>
+            </div>
+
+            {/* Danger Title */}
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 1rem 0', color: '#ffffff', letterSpacing: '0.2px' }}>
+              Danger
+            </h2>
+
+            {/* Notice Body Text */}
+            <p style={{ fontSize: '0.84rem', color: '#cccccc', margin: '0 0 1.25rem 0', textAlign: 'left', lineHeight: '1.5' }}>
+              "Delete <strong>Section {deleteWarningModal.sec}</strong> ({selectedBranch} {selectedYear})" is a highly sensitive action. If you proceed with this deletion, <strong>{deleteWarningModal.count} enrolled student record(s)</strong> will be detached from their section roster and attendance tracking might be interrupted. Here's what will happen:
+            </p>
+
+            {/* Consequences list */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', marginBottom: '1.5rem', width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <div style={{ minWidth: '22px', height: '22px', borderRadius: '50%', background: '#444444', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaaaaa', fontSize: '0.75rem', fontWeight: 700, marginTop: '0.1rem' }}>
+                  !
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.84rem', fontWeight: 600, color: '#f3f4f6' }}>Influence the system's class stability</div>
+                  <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.15rem', lineHeight: '1.4' }}>
+                    Removes the section register across attendance upload and monthly reports.
+                  </div>
+                </div>
               </div>
-              <button 
-                onClick={() => setDeleteWarningModal(null)} 
-                style={{ background: 'none', border: 'none', color: '#fecaca', cursor: 'pointer', fontSize: '1.2rem' }}
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <div style={{ minWidth: '22px', height: '22px', borderRadius: '50%', background: '#444444', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaaaaa', fontSize: '0.75rem', fontWeight: 700, marginTop: '0.1rem' }}>
+                  ⚠️
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.84rem', fontWeight: 600, color: '#f3f4f6' }}>Roster Disruption</div>
+                  <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.15rem', lineHeight: '1.4' }}>
+                    Enrolled students must be reassigned to another section manually.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mandatory Checkbox */}
+            <label 
+              style={{ 
+                display: 'flex', 
+                alignItems: 'flex-start', 
+                gap: '0.65rem', 
+                width: '100%', 
+                fontSize: '0.8rem', 
+                color: '#d1d5db', 
+                cursor: 'pointer', 
+                marginBottom: '1.75rem',
+                lineHeight: '1.45'
+              }}
+            >
+              <input 
+                type="checkbox" 
+                checked={awareCheckbox} 
+                onChange={(e) => setAwareCheckbox(e.target.checked)}
+                style={{ 
+                  marginTop: '0.15rem', 
+                  width: '18px', 
+                  height: '18px', 
+                  accentColor: '#007aff',
+                  cursor: 'pointer'
+                }}
+              />
+              <span>I'm aware of the possible risks, and assume all possible consequences voluntarily.</span>
+            </label>
+
+            {/* Dual Button Layout (Redmi Style: OK(10) left, Cancel right) */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', width: '100%' }}>
+              <button
+                type="button"
+                disabled={deleteCountdown > 0 || !awareCheckbox}
+                onClick={() => confirmDeleteSection(deleteWarningModal.sec)}
+                style={{
+                  padding: '0.75rem 0.5rem',
+                  borderRadius: '24px',
+                  border: 'none',
+                  fontSize: '0.88rem',
+                  fontWeight: 600,
+                  color: (deleteCountdown > 0 || !awareCheckbox) ? '#888888' : '#ffffff',
+                  background: (deleteCountdown > 0 || !awareCheckbox) ? '#3e3e3e' : '#e11d48',
+                  cursor: (deleteCountdown > 0 || !awareCheckbox) ? 'not-allowed' : 'pointer',
+                  opacity: (deleteCountdown > 0 || !awareCheckbox) ? 0.65 : 1,
+                  transition: 'all 0.2s ease',
+                  textAlign: 'center'
+                }}
               >
-                <X size={20} />
+                {deleteCountdown > 0 ? `OK (${deleteCountdown})` : 'OK'}
               </button>
-            </div>
 
-            <div className="modal-body" style={{ padding: '1.5rem', background: '#ffffff', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '8px', padding: '0.85rem 1rem', color: '#991b1b', fontSize: '0.86rem', lineHeight: '1.5' }}>
-                You are about to delete <strong>Section {deleteWarningModal.sec}</strong> ({selectedBranch} {selectedYear}).
-                <div style={{ marginTop: '0.4rem', fontWeight: 600 }}>
-                  ⚠️ This section currently contains <u>{deleteWarningModal.count} enrolled student(s)</u>.
-                </div>
-              </div>
-
-              <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0, lineHeight: '1.45' }}>
-                Deleting an active section disrupts roster filters and section attendance registers. Please read the consequences carefully before authorizing this action.
-              </p>
-
-              {deleteCountdown > 0 ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.85rem', fontWeight: 600 }}>
-                  <Clock size={16} className="animate-spin" style={{ color: '#ef4444' }} />
-                  <span>Please read and wait: <strong style={{ color: '#b91c1c', fontSize: '1rem' }}>{deleteCountdown}s</strong></span>
-                </div>
-              ) : (
-                <div style={{ padding: '0.6rem 0.85rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', color: '#166534', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <CheckCircle2 size={16} />
-                  <span>Safety countdown complete. Confirmation button is now active.</span>
-                </div>
-              )}
-            </div>
-
-            <div className="modal-footer" style={{ padding: '1rem 1.5rem', background: '#f8fafc', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-              <button 
-                type="button" 
-                onClick={() => setDeleteWarningModal(null)} 
-                className="btn btn-outline"
-                style={{ fontWeight: 600 }}
+              <button
+                type="button"
+                onClick={() => setDeleteWarningModal(null)}
+                style={{
+                  padding: '0.75rem 0.5rem',
+                  borderRadius: '24px',
+                  border: 'none',
+                  fontSize: '0.88rem',
+                  fontWeight: 600,
+                  color: '#ffffff',
+                  background: '#007aff',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  textAlign: 'center'
+                }}
               >
                 Cancel
               </button>
-              <button 
-                type="button" 
-                disabled={deleteCountdown > 0}
-                onClick={() => confirmDeleteSection(deleteWarningModal.sec)}
-                className="btn btn-primary"
-                style={{
-                  background: deleteCountdown > 0 ? '#fca5a5' : '#dc2626',
-                  borderColor: deleteCountdown > 0 ? '#fca5a5' : '#dc2626',
-                  color: '#ffffff',
-                  cursor: deleteCountdown > 0 ? 'not-allowed' : 'pointer',
-                  opacity: deleteCountdown > 0 ? 0.55 : 1,
-                  transition: 'all 0.2s ease',
-                  fontWeight: 700
-                }}
-              >
-                {deleteCountdown > 0 ? `Wait (${deleteCountdown}s)` : 'I Understand, Delete Section'}
-              </button>
             </div>
+
           </div>
         </div>
       )}
