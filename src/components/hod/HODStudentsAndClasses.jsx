@@ -30,6 +30,8 @@ import {
 import { 
   generateStudentRegistrationTemplate, 
   generateStudentRegistrationWorkbook,
+  generateYearAllSectionsWorkbook,
+  generateAllBranchesYearWorkbook,
   parseAndValidateStudentCSV 
 } from '../../data/sampleSpreadsheet';
 import * as XLSX from 'xlsx';
@@ -50,6 +52,7 @@ export default function HODStudentsAndClasses() {
     updateManualAttendance, 
     promoteStudent,
     batchPromoteStudents,
+    departments = [],
     showToast 
   } = useAuth();
 
@@ -456,6 +459,23 @@ export default function HODStudentsAndClasses() {
     const filename = `Student_Registration_${selectedBranch}_${yrClean}_Sec${selectedSection}_Template.xlsx`;
     XLSX.writeFile(wb, filename);
     showToast(`Downloaded blank Excel registration template for ${assignedBranch} ${selectedYear} Section ${selectedSection}!`, "success");
+  };
+
+  const handleDownloadYearAllSections = () => {
+    const yrSecs = sectionsByYear[selectedYear] || ['A', 'B', 'C'];
+    const wb = generateYearAllSectionsWorkbook(selectedBranch, selectedYear, yrSecs);
+    const yrClean = selectedYear.replace(/\s+/g, '');
+    const filename = `Student_Registration_${selectedBranch}_${yrClean}_AllSections_Workbook.xlsx`;
+    XLSX.writeFile(wb, filename);
+    showToast(`Downloaded ${selectedYear} workbook with all ${yrSecs.length} section tabs for ${assignedBranch}!`, "success");
+  };
+
+  const handleDownloadAllBranchesYear = () => {
+    const wb = generateAllBranchesYearWorkbook(departments, selectedYear);
+    const yrClean = selectedYear.replace(/\s+/g, '');
+    const filename = `Student_Registration_AllBranches_${yrClean}_MasterTemplate.xlsx`;
+    XLSX.writeFile(wb, filename);
+    showToast(`Downloaded master registration template for ALL branches (${selectedYear})!`, "success");
   };
 
   const handleProcessCsvText = (filename, content) => {
@@ -1703,19 +1723,47 @@ export default function HODStudentsAndClasses() {
                 <strong>Section Enrollment:</strong> All uploaded students will be directly enrolled into <strong>{assignedBranch} • {selectedYear} • Section {selectedSection}</strong>. You only need to provide their <strong>Roll Number</strong> and <strong>Student Name</strong>; all other profile details are completed by the student.
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', padding: '0.75rem 1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0e2154' }}>Section Student Enrollment Template</div>
-                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Columns: Roll Number, Student Name</div>
+              <div style={{ padding: '0.85rem 1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0e2154' }}>
+                      Student Enrollment Templates ({assignedBranch} • {selectedYear})
+                    </div>
+                    <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                      Columns: Roll Number, Student Name (Remaining completed by student)
+                    </div>
+                  </div>
                 </div>
-                <div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button 
                     type="button" 
                     onClick={handleDownloadRegTemplate} 
                     className="btn btn-sm btn-outline"
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem' }}
+                    title={`Download blank template for Section ${selectedSection}`}
                   >
-                    <Download size={14} /> Download Excel Template (.xlsx)
+                    <Download size={13} /> Current Section ({selectedSection}) Template
+                  </button>
+
+                  <button 
+                    type="button" 
+                    onClick={handleDownloadYearAllSections} 
+                    className="btn btn-sm btn-outline"
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderColor: '#0a3d78', color: '#0a3d78', fontWeight: 600, fontSize: '0.78rem' }}
+                    title={`Download workbook with tabs for all ${(sectionsByYear[selectedYear] || []).length} sections in ${selectedYear}`}
+                  >
+                    <Download size={13} /> Download All Sections ({selectedYear})
+                  </button>
+
+                  <button 
+                    type="button" 
+                    onClick={handleDownloadAllBranchesYear} 
+                    className="btn btn-sm btn-outline"
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderColor: '#d97706', color: '#b45309', background: '#fffbeb', fontWeight: 600, fontSize: '0.78rem' }}
+                    title={`Download master registration workbook covering all college branches for ${selectedYear}`}
+                  >
+                    <Download size={13} /> Download All Branches ({selectedYear})
                   </button>
                 </div>
               </div>

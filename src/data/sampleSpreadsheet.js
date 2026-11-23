@@ -61,6 +61,55 @@ export function generateStudentRegistrationWorkbook(branch = "CSE", year = "1st 
   return wb;
 }
 
+// Generate a unified workbook containing ALL sections for a specific academic year (each section as a tab)
+export function generateYearAllSectionsWorkbook(branch = "CSE", year = "1st Year", sections = ['A', 'B', 'C']) {
+  const wb = XLSX.utils.book_new();
+  const yrCode = normalizeYear(year).replace(/\s+/g, '');
+
+  sections.forEach(sec => {
+    const ws = XLSX.utils.aoa_to_sheet([STUDENT_REGISTRATION_COLUMNS]);
+    ws['!cols'] = [
+      { wch: 22 }, // Roll Number
+      { wch: 34 }  // Student Name
+    ];
+    const sheetTitle = `Sec ${sec}`.slice(0, 31);
+    XLSX.utils.book_append_sheet(wb, ws, sheetTitle);
+  });
+
+  wb.Props = {
+    Title: `Student Registration Template - ${branch} ${year} All Sections`,
+    Subject: `${branch}|${normalizeYear(year)}|ALL_SECTIONS`,
+    Author: "Tirumala Engineering College"
+  };
+  return wb;
+}
+
+// Generate master workbook containing ALL branches for an academic year (each branch as a tab)
+export function generateAllBranchesYearWorkbook(departments = [], year = "1st Year") {
+  const wb = XLSX.utils.book_new();
+  const depts = departments.length > 0 ? departments : [{ id: 'CSE', name: 'Computer Science' }];
+
+  depts.forEach(d => {
+    // 4 columns: Roll Number, Student Name, Section
+    const cols = ["Roll Number", "Student Name", "Section"];
+    const ws = XLSX.utils.aoa_to_sheet([cols]);
+    ws['!cols'] = [
+      { wch: 22 }, // Roll Number
+      { wch: 34 }, // Student Name
+      { wch: 16 }  // Section
+    ];
+    const sheetTitle = `${d.id}`.slice(0, 31);
+    XLSX.utils.book_append_sheet(wb, ws, sheetTitle);
+  });
+
+  wb.Props = {
+    Title: `Student Registration Master Template - All Branches ${year}`,
+    Subject: `ALL_BRANCHES|${normalizeYear(year)}`,
+    Author: "Tirumala Engineering College"
+  };
+  return wb;
+}
+
 // Pre-packaged test datasets for demo convenience
 export function getSampleValidCSV() {
   return [
