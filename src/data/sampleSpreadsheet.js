@@ -41,14 +41,23 @@ export function generateStudentRegistrationTemplate() {
 }
 
 // Generate native Excel workbook (.xlsx) for batch student enrollment (Only Roll Number and Student Name)
-export function generateStudentRegistrationWorkbook() {
+// Embeds template target metadata in sheet properties / headers so upload verifies exact Year & Section match
+export function generateStudentRegistrationWorkbook(branch = "CSE", year = "1st Year", section = "A") {
   const ws = XLSX.utils.aoa_to_sheet([STUDENT_REGISTRATION_COLUMNS]);
   ws['!cols'] = [
     { wch: 22 }, // Roll Number
     { wch: 34 }  // Student Name
   ];
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Student Enrollment");
+  const yrCode = normalizeYear(year).replace(/\s+/g, '');
+  const sheetTitle = `${branch}_${yrCode}_Sec${section}`.slice(0, 31);
+  XLSX.utils.book_append_sheet(wb, ws, sheetTitle);
+  // Store custom doc metadata
+  wb.Props = {
+    Title: `Student Registration Template - ${branch} ${year} Section ${section}`,
+    Subject: `${branch}|${normalizeYear(year)}|${section.toUpperCase()}`,
+    Author: "Tirumala Engineering College"
+  };
   return wb;
 }
 
@@ -296,6 +305,40 @@ export function parseAndValidateStudentCSV(csvContent, existingStudents = [], co
   const semIdx = colIndex.semester >= 0 ? colIndex.semester : 4;
   const secIdx = colIndex.section >= 0 ? colIndex.section : 5;
 
+  // Expected target year & section from context
+  const targetYear = normalizeYear(context.year || "1st Year");
+  const targetSection = (context.section || "A").replace(/^Sec(tion)?\s*/i, '').trim().toUpperCase() || "A";
+  const targetBranch = (context.branch || context.department || "CSE").toUpperCase();
+
+  // If the file itself has metadata (from template or filename), check for year/section mismatch
+  const filename = (context.filename || "").toUpperCase();
+  let filenameMismatchError = null;
+
+  // Check if filename indicates a different year (e.g. 4THYEAR vs 1STYEAR)
+  const allYears = [
+    { label: '1st Year', patterns: ['1STYEAR', '1ST_YEAR', '1ST-YEAR', 'YEAR1', 'YEAR_1'] },
+    { label: '2nd Year', patterns: ['2NDYEAR', '2ND_YEAR', '2ND-YEAR', 'YEAR2', 'YEAR_2'] },
+    { label: '3rd Year', patterns: ['3RDYEAR', '3RD_YEAR', '3RD-YEAR', 'YEAR3', 'YEAR_3'] },
+    { label: '4th Year', patterns: ['4THYEAR', '4TH_YEAR', '4TH-YEAR', 'YEAR4', 'YEAR_4'] }
+  ];
+
+  for (const y of allYears) {
+    if (y.label !== targetYear) {
+      if (y.patterns.some(p => filename.includes(p))) {
+        filenameMismatchError = `Year Mismatch: You uploaded a file meant for [${y.label}], but current target section is [${targetYear} Section ${targetSection}]. Please select the matching academic year or download the template for ${targetYear}.`;
+        break;
+      }
+    }
+  }
+
+  // Check if filename indicates a different section (e.g. SECA vs SECB)
+  if (!filenameMismatchError && filename.includes('SEC')) {
+    const secMatch = filename.match(/SEC_?([A-Z])/);
+    if (secMatch && secMatch[1] && secMatch[1] !== targetSection) {
+      filenameMismatchError = `Section Mismatch: File is titled for [Section ${secMatch[1]}], but you are uploading into [Section ${targetSection}]. Please upload into Section ${secMatch[1]} or use the Section ${targetSection} template.`;
+    }
+  }
+
   const seenRolls = new Set();
   const parsedRows = [];
   let validCount = 0;
@@ -308,13 +351,31 @@ export function parseAndValidateStudentCSV(csvContent, existingStudents = [], co
 
     const rollNumber = (cleanCells[rollIdx] || "").toUpperCase();
     const name = cleanCells[nameIdx] || "";
-    // Automatically assigned to HOD's active branch, selected year, and section
-    const branch = (context.branch || context.department || "CSE").toUpperCase();
-    const year = normalizeYear(context.year || "1st Year");
+    
+    // Read row-level branch/year/section if present in CSV columns
+    const fileRowYear = colIndex.year >= 0 && cleanCells[yearIdx] ? normalizeYear(cleanCells[yearIdx]) : null;
+    const fileRowSec = colIndex.section >= 0 && cleanCells[secIdx] ? cleanCells[secIdx].replace(/^Sec(tion)?\s*/i, '').trim().toUpperCase() : null;
+
+    const branch = targetBranch;
+    const year = fileRowYear || targetYear;
     const semester = normalizeSemesterCode(context.semester || "1-1");
-    const section = (context.section || "A").replace(/^Sec(tion)?\s*/i, '').trim().toUpperCase() || "A";
+    const section = fileRowSec || targetSection;
 
     const errors = [];
+
+    if (filenameMismatchError) {
+      errors.push(filenameMismatchError);
+    }
+
+    // Check row-level year mismatch
+    if (fileRowYear && fileRowYear !== targetYear) {
+      errors.push(`Row year [${fileRowYear}] does not match target class [${targetYear}]`);
+    }
+
+    // Check row-level section mismatch
+    if (fileRowSec && fileRowSec !== targetSection) {
+      errors.push(`Row section [Section ${fileRowSec}] does not match target section [Section ${targetSection}]`);
+    }
 
     if (!rollNumber) {
       errors.push("Missing Roll Number");

@@ -460,7 +460,12 @@ export default function HODStudentsAndClasses() {
 
   const handleProcessCsvText = (filename, content) => {
     setCsvFileName(filename);
-    const context = { branch: selectedBranch, year: selectedYear, section: selectedSection };
+    const context = { 
+      branch: selectedBranch, 
+      year: selectedYear, 
+      section: selectedSection,
+      filename: filename
+    };
     const parsed = parseAndValidateStudentCSV(content, students, context);
     setCsvResult(parsed);
     if (parsed.isValid) {
