@@ -95,7 +95,8 @@ export default function LoginModal() {
     <div 
       className="modal-backdrop"
       onClick={(e) => {
-        if (e.target === e.currentTarget) setLoginModalOpen(false);
+        // Do not close when moving cursor or clicking backdrop; closed only via the X button
+        e.stopPropagation();
       }}
     >
       <div 
@@ -331,16 +332,9 @@ export default function LoginModal() {
           {/* Footer Actions */}
           <div className="modal-footer">
             <button 
-              type="button" 
-              onClick={() => setLoginModalOpen(false)}
-              className="btn btn-outline"
-            >
-              Cancel
-            </button>
-            <button 
               type="submit" 
               className="btn btn-primary"
-              style={{ padding: '0.6rem 1.5rem' }}
+              style={{ padding: '0.6rem 1.5rem', width: '100%' }}
             >
               <LogIn size={16} /> Authenticate & Access Portal
             </button>
