@@ -1737,35 +1737,25 @@ export default function HODStudentsAndClasses() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
                   <button 
                     type="button" 
                     onClick={handleDownloadRegTemplate} 
                     className="btn btn-sm btn-outline"
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
                     title={`Download blank template for Section ${selectedSection}`}
                   >
-                    <Download size={13} /> Current Section ({selectedSection}) Template
+                    <Download size={14} /> Download Sec {selectedSection} Template (.xlsx)
                   </button>
 
                   <button 
                     type="button" 
                     onClick={handleDownloadYearAllSections} 
-                    className="btn btn-sm btn-outline"
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderColor: '#0a3d78', color: '#0a3d78', fontWeight: 600, fontSize: '0.78rem' }}
+                    className="btn btn-sm btn-primary"
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', padding: '0.45rem 0.85rem' }}
                     title={`Download workbook with tabs for all ${(sectionsByYear[selectedYear] || []).length} sections in ${selectedYear}`}
                   >
-                    <Download size={13} /> Download All Sections ({selectedYear})
-                  </button>
-
-                  <button 
-                    type="button" 
-                    onClick={handleDownloadAllBranchesYear} 
-                    className="btn btn-sm btn-outline"
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', borderColor: '#d97706', color: '#b45309', background: '#fffbeb', fontWeight: 600, fontSize: '0.78rem' }}
-                    title={`Download master registration workbook covering all college branches for ${selectedYear}`}
-                  >
-                    <Download size={13} /> Download All Branches ({selectedYear})
+                    <Download size={14} /> Download All Sections ({selectedYear})
                   </button>
                 </div>
               </div>
