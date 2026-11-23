@@ -108,40 +108,26 @@ export default function HODAttendanceUpload() {
     period: `${currentMonthName} ${currentYearNum}`
   });
 
-  // Requirement 2: Manage ALL subjects for selected academic year with LocalStorage persistence
-  const DEFAULT_CURRICULUM = {
-    'I Year': [
-      { code: 'CS101PC', name: 'Programming in C' },
-      { code: 'MA101BS', name: 'Linear Algebra & Calculus' },
-      { code: 'PH101BS', name: 'Engineering Physics' },
-      { code: 'EE101ES', name: 'Basic Electrical Engineering' }
-    ],
-    'II Year': [
-      { code: 'CS301PC', name: 'Data Structures & Algorithms' },
-      { code: 'CS302PC', name: 'Discrete Mathematics' },
-      { code: 'CS303PC', name: 'Digital Logic Design' },
-      { code: 'CS304PC', name: 'Python Programming' }
-    ],
-    'III Year': [
-      { code: 'CS501PC', name: 'Database Management Systems' },
-      { code: 'CS502PC', name: 'Operating Systems' },
-      { code: 'CS503PC', name: 'Computer Networks' },
-      { code: 'CS504PC', name: 'Software Engineering' }
-    ],
-    'IV Year': [
-      { code: 'CS701PC', name: 'Cloud Computing & Distributed Systems' },
-      { code: 'CS702PC', name: 'Cryptography & Network Security' },
-      { code: 'CS711PE', name: 'Full Stack Web Development' },
-      { code: 'CS712PE', name: 'Machine Learning & Applications' }
-    ]
+  // Subjects are kept empty by default; filled and customized by the HOD per section/semester
+  const EMPTY_CURRICULUM = {
+    'I Year': [],
+    'II Year': [],
+    'III Year': [],
+    'IV Year': []
   };
 
   const [subjectsByYear, setSubjectsByYear] = useState(() => {
     try {
+      const v = localStorage.getItem('tec_curriculum_version');
+      if (v !== 'v2_empty') {
+        localStorage.setItem('tec_curriculum_version', 'v2_empty');
+        localStorage.setItem(`tec_curriculum_${assignedBranch}`, JSON.stringify(EMPTY_CURRICULUM));
+        return EMPTY_CURRICULUM;
+      }
       const saved = localStorage.getItem(`tec_curriculum_${assignedBranch}`);
-      return saved ? JSON.parse(saved) : DEFAULT_CURRICULUM;
+      return saved ? JSON.parse(saved) : EMPTY_CURRICULUM;
     } catch {
-      return DEFAULT_CURRICULUM;
+      return EMPTY_CURRICULUM;
     }
   });
 
@@ -247,23 +233,19 @@ export default function HODAttendanceUpload() {
   };
 
   const handleRemoveSubject = (codeToRemove) => {
-    if (currentSubjects.length <= 1) {
-      showToast("At least one subject must remain in the section curriculum.", "warning");
-      return;
-    }
     setSubjectsByYear(prev => ({
       ...prev,
-      [context.year]: prev[context.year].filter(s => s.code !== codeToRemove)
+      [context.year]: (prev[context.year] || []).filter(s => s.code !== codeToRemove)
     }));
-    showToast(`Subject ${codeToRemove} removed from active sheet configuration.`, "info");
+    showToast(`Subject ${codeToRemove} removed.`, "info");
   };
 
   const handleResetSubjects = () => {
     setSubjectsByYear(prev => ({
       ...prev,
-      [context.year]: DEFAULT_CURRICULUM[context.year] || []
+      [context.year]: []
     }));
-    showToast(`Reset ${context.year} subjects to official college curriculum.`, "info");
+    showToast(`Cleared subjects for ${context.year}.`, "info");
   };
 
   // Active section students from registered roster for the HOD's branch
@@ -602,10 +584,10 @@ export default function HODAttendanceUpload() {
                     type="button" 
                     onClick={handleResetSubjects}
                     className="btn btn-sm btn-outline"
-                    title="Reset to default department curriculum"
+                    title="Clear all subjects for this academic year"
                     style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                   >
-                    <RefreshCw size={12} /> Reset
+                    <RefreshCw size={12} /> Clear Subjects
                   </button>
                 </div>
               </div>
@@ -640,43 +622,49 @@ export default function HODAttendanceUpload() {
               )}
 
               {/* Subjects Cards Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '0.65rem' }}>
-                {currentSubjects.map((sub, idx) => (
-                  <div 
-                    key={sub.code}
-                    style={{ 
-                      background: '#f8fafc', 
-                      border: '1px solid #e2e8f0', 
-                      borderRadius: '8px', 
-                      padding: '0.65rem 0.85rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '0.5rem'
-                    }}
-                  >
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#0a3d78', background: '#dbeafe', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                          {sub.code}
-                        </span>
-                        <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Column {idx + 3}</span>
-                      </div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1e293b', marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {sub.name}
-                      </div>
-                    </div>
-                    <button 
-                      type="button"
-                      onClick={() => handleRemoveSubject(sub.code)}
-                      title={`Remove ${sub.code}`}
-                      style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.25rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}
+              {currentSubjects.length === 0 ? (
+                <div style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px', padding: '1.25rem', textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
+                  No subjects configured for {context.year} yet. Click <strong>"+ Add Subject to Section"</strong> above to enter subjects for this section.
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '0.65rem' }}>
+                  {currentSubjects.map((sub, idx) => (
+                    <div 
+                      key={sub.code}
+                      style={{ 
+                        background: '#f8fafc', 
+                        border: '1px solid #e2e8f0', 
+                        borderRadius: '8px', 
+                        padding: '0.65rem 0.85rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '0.5rem'
+                      }}
                     >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#0a3d78', background: '#dbeafe', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                            {sub.code}
+                          </span>
+                          <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Column {idx + 3}</span>
+                        </div>
+                        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1e293b', marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {sub.name}
+                        </div>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => handleRemoveSubject(sub.code)}
+                        title={`Remove ${sub.code}`}
+                        style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.25rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Section Overview Banner & Template Download */}
