@@ -159,21 +159,30 @@ export default function HODAttendanceUpload() {
   };
 
   const handleAddSection = () => {
-    const raw = newSectionInput.trim();
-    if (!raw) {
-      showToast("Please enter a valid section letter or name (e.g. D)", "warning");
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let nextLetter = 'D';
+    for (let char of alphabet) {
+      if (!sections.includes(char)) {
+        nextLetter = char;
+        break;
+      }
+    }
+    setSections(prev => [...prev, nextLetter]);
+    setContext(prev => ({ ...prev, section: nextLetter }));
+    showToast(`Section ${nextLetter} added successfully!`, "success");
+  };
+
+  const handleRemoveSection = (secToRemove) => {
+    if (sections.length <= 1) {
+      showToast("At least one section must remain.", "warning");
       return;
     }
-    const cleaned = raw.replace(/^section\s+/i, '').trim().toUpperCase() || raw.toUpperCase();
-    if (sections.includes(cleaned)) {
-      showToast(`Section ${cleaned} already exists.`, "warning");
-      return;
+    const remaining = sections.filter(s => s !== secToRemove);
+    setSections(remaining);
+    if (context.section === secToRemove) {
+      setContext(prev => ({ ...prev, section: remaining[0] }));
     }
-    setSections(prev => [...prev, cleaned]);
-    setContext(prev => ({ ...prev, section: cleaned }));
-    setNewSectionInput('');
-    setShowAddSectionModal(false);
-    showToast(`Section ${cleaned} added successfully!`, "success");
+    showToast(`Section ${secToRemove} removed.`, "info");
   };
 
   // Requirement 1: Manual Period addition handler
@@ -504,13 +513,26 @@ export default function HODAttendanceUpload() {
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
                   <label className="form-label" style={{ marginBottom: 0, fontWeight: 600 }}>Section</label>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddSectionModal(true)}
-                    style={{ background: 'none', border: 'none', color: '#0a3d78', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}
-                  >
-                    <Plus size={13} /> Add Section
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <button
+                      type="button"
+                      onClick={handleAddSection}
+                      style={{ background: 'none', border: 'none', color: '#0a3d78', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}
+                      title="Add next proceeding alphabetical section"
+                    >
+                      <Plus size={13} /> Add Sec
+                    </button>
+                    {sections.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSection(context.section)}
+                        style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}
+                        title={`Delete current Section ${context.section}`}
+                      >
+                        <Trash2 size={12} /> Remove
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <select 
                   className="form-select"
@@ -1036,56 +1058,6 @@ export default function HODAttendanceUpload() {
           </table>
         </div>
       </div>
-
-      {/* ADD SECTION MODAL */}
-      {showAddSectionModal && (
-        <div className="modal-backdrop">
-          <div className="modal-dialog" style={{ maxWidth: '400px' }}>
-            <div className="modal-header" style={{ background: '#0a3d78', color: '#ffffff' }}>
-              <h3 style={{ fontSize: '1rem', color: '#ffffff', margin: 0 }}>Add New Academic Section</h3>
-              <button 
-                onClick={() => setShowAddSectionModal(false)}
-                style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer' }}
-              >
-                ✕
-              </button>
-            </div>
-            <div className="modal-body" style={{ padding: '1.25rem' }}>
-              <div className="form-group">
-                <label className="form-label">Section Identifier</label>
-                <input 
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. D or Section D"
-                  value={newSectionInput}
-                  onChange={(e) => setNewSectionInput(e.target.value)}
-                  maxLength={10}
-                  autoFocus
-                />
-                <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.25rem' }}>
-                  Default sections are A, B, and C. You can add D, E, or specialized division tags.
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer" style={{ padding: '0.85rem 1.25rem', background: '#f8fafc', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-              <button 
-                type="button" 
-                onClick={() => setShowAddSectionModal(false)}
-                className="btn btn-sm btn-outline"
-              >
-                Cancel
-              </button>
-              <button 
-                type="button" 
-                onClick={handleAddSection}
-                className="btn btn-sm btn-primary"
-              >
-                Add Section
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ADD ATTENDANCE PERIOD MODAL - Requirement 1: Manual Month & Year / Cumulative entry */}
       {showAddPeriodModal && (

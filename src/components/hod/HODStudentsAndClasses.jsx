@@ -137,24 +137,48 @@ export default function HODStudentsAndClasses() {
   };
 
   const handleAddSection = () => {
-    const raw = newSectionInput.trim();
-    if (!raw) {
-      showToast("Please enter a valid section letter or name (e.g. D)", "warning");
-      return;
-    }
-    const cleaned = raw.replace(/^section\s+/i, '').trim().toUpperCase() || raw.toUpperCase();
-    if (currentSections.includes(cleaned)) {
-      showToast(`Section ${cleaned} already exists for ${assignedBranch} ${selectedYear}.`, "warning");
-      return;
+    // Automatically find the next alphabetical letter (e.g. A, B, C -> D)
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let nextLetter = 'D';
+    for (let char of alphabet) {
+      if (!currentSections.includes(char)) {
+        nextLetter = char;
+        break;
+      }
     }
     setSectionsByYear(prev => ({
       ...prev,
-      [selectedYear]: [...(prev[selectedYear] || ['A', 'B', 'C']), cleaned]
+      [selectedYear]: [...(prev[selectedYear] || ['A', 'B', 'C']), nextLetter]
     }));
-    setSelectedSection(cleaned);
-    setNewSectionInput('');
-    setShowAddSectionModal(false);
-    showToast(`Section ${cleaned} added to ${assignedBranch} ${selectedYear}!`, "success");
+    setSelectedSection(nextLetter);
+    showToast(`Section ${nextLetter} added to ${assignedBranch} ${selectedYear}!`, "success");
+  };
+
+  const handleRemoveSection = (secToRemove) => {
+    if (currentSections.length <= 1) {
+      showToast("At least one section must remain.", "warning");
+      return;
+    }
+    // Check if any students exist in this section
+    const studentsInSection = students.filter(s => 
+      s.department === selectedBranch && 
+      normalizeYear(s.year) === normalizeYear(selectedYear) && 
+      s.section === secToRemove
+    );
+    if (studentsInSection.length > 0) {
+      if (!window.confirm(`Section ${secToRemove} has ${studentsInSection.length} student(s) enrolled. Removing this section will keep their records but remove the section tab. Proceed?`)) {
+        return;
+      }
+    }
+    const remaining = currentSections.filter(s => s !== secToRemove);
+    setSectionsByYear(prev => ({
+      ...prev,
+      [selectedYear]: remaining
+    }));
+    if (selectedSection === secToRemove) {
+      setSelectedSection(remaining[0]);
+    }
+    showToast(`Section ${secToRemove} removed successfully.`, "info");
   };
 
   // Filter students for the chosen Branch -> Year -> Section
@@ -614,27 +638,57 @@ export default function HODStudentsAndClasses() {
             <span style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>Section:</span>
             <div style={{ display: 'flex', background: '#f8fafc', padding: '0.2rem', borderRadius: '8px', border: '1px solid #e2e8f0', gap: '0.25rem', alignItems: 'center' }}>
               {currentSections.map(sec => (
-                <button
+                <div 
                   key={sec}
-                  onClick={() => setSelectedSection(sec)}
                   style={{
-                    padding: '0.35rem 0.75rem',
-                    borderRadius: '6px',
-                    fontSize: '0.8rem',
-                    fontWeight: 700,
-                    border: 'none',
-                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
                     background: selectedSection === sec ? '#f59e0b' : 'transparent',
-                    color: selectedSection === sec ? '#0e2154' : '#475569',
+                    borderRadius: '6px',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  Sec {sec}
-                </button>
+                  <button
+                    onClick={() => setSelectedSection(sec)}
+                    style={{
+                      padding: '0.35rem 0.6rem 0.35rem 0.75rem',
+                      borderRadius: '6px',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      border: 'none',
+                      cursor: 'pointer',
+                      background: 'transparent',
+                      color: selectedSection === sec ? '#0e2154' : '#475569'
+                    }}
+                  >
+                    Sec {sec}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveSection(sec);
+                    }}
+                    title={`Remove Section ${sec}`}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: selectedSection === sec ? '#78350f' : '#94a3b8',
+                      cursor: 'pointer',
+                      padding: '0.25rem 0.4rem 0.25rem 0',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
               ))}
               <button
                 type="button"
-                onClick={() => setShowAddSectionModal(true)}
+                onClick={handleAddSection}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -648,7 +702,7 @@ export default function HODStudentsAndClasses() {
                   color: '#0a3d78',
                   cursor: 'pointer'
                 }}
-                title="Add a new section for this academic year"
+                title="Add next proceeding alphabetical section"
               >
                 <Plus size={13} /> Add Sec
               </button>
@@ -1863,58 +1917,6 @@ export default function HODStudentsAndClasses() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* ADD SECTION MODAL */}
-      {showAddSectionModal && (
-        <div className="modal-backdrop">
-          <div className="modal-dialog" style={{ maxWidth: '420px' }}>
-            <div className="modal-header" style={{ background: '#0a3d78', color: '#ffffff' }}>
-              <div>
-                <h3 style={{ fontSize: '1.05rem', color: '#ffffff', margin: 0 }}>Add Academic Section</h3>
-                <div style={{ fontSize: '0.75rem', color: '#93c5fd', marginTop: '0.2rem' }}>
-                  {assignedBranch} • {selectedYear} (Semester {selectedSemester})
-                </div>
-              </div>
-              <button 
-                onClick={() => setShowAddSectionModal(false)}
-                style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', fontSize: '1.1rem' }}
-              >
-                ✕
-              </button>
-            </div>
-            <div className="modal-body" style={{ padding: '1.25rem' }}>
-              <div className="form-group">
-                <label className="form-label" style={{ fontWeight: 600 }}>Section Identifier / Letter</label>
-                <input 
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. D"
-                  value={newSectionInput}
-                  onChange={(e) => setNewSectionInput(e.target.value)}
-                  maxLength={10}
-                  autoFocus
-                />
-              </div>
-            </div>
-            <div className="modal-footer" style={{ padding: '0.85rem 1.25rem', background: '#f8fafc', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-              <button 
-                type="button" 
-                onClick={() => setShowAddSectionModal(false)}
-                className="btn btn-sm btn-outline"
-              >
-                Cancel
-              </button>
-              <button 
-                type="button" 
-                onClick={handleAddSection}
-                className="btn btn-sm btn-primary"
-              >
-                Add Section
-              </button>
-            </div>
           </div>
         </div>
       )}
