@@ -121,22 +121,13 @@ export default function PrincipalHODManagement() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-          <button 
-            onClick={handleOpenAddBranchModal}
-            className="btn btn-outline"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', borderColor: '#d97706', color: '#b45309', background: '#fffbeb' }}
-          >
-            <Building2 size={16} /> + Add New Branch / Department
-          </button>
-          <button 
-            onClick={() => handleOpenAssignModal()}
-            className="btn btn-primary"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-          >
-            <UserPlus size={16} /> Provision / Reassign HOD
-          </button>
-        </div>
+        <button 
+          onClick={handleOpenAddBranchModal}
+          className="btn btn-outline"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', borderColor: '#d97706', color: '#b45309', background: '#fffbeb' }}
+        >
+          <Building2 size={16} /> + Add New Branch / Department
+        </button>
       </div>
 
       {/* HOD Cards Grid */}
@@ -272,20 +263,7 @@ export default function PrincipalHODManagement() {
                   />
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Initial Password / Security Key</label>
-                  <input 
-                    type="text" 
-                    className="form-input"
-                    required
-                    placeholder="e.g. HOD_CSE#2026"
-                    value={formData.initialPassword}
-                    onChange={e => setFormData({ ...formData, initialPassword: e.target.value })}
-                  />
-                  <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.25rem' }}>
-                    The newly appointed HOD will be prompted to verify and retain or update their security key upon first login.
-                  </div>
-                </div>
+                
 
               </div>
 
@@ -294,7 +272,7 @@ export default function PrincipalHODManagement() {
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  Save & Provision HOD
+                  Save Changes
                 </button>
               </div>
             </form>
