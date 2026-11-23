@@ -111,6 +111,29 @@ export default function HODStudentsAndClasses() {
   const [inspectedSemCode, setInspectedSemCode] = useState('4-1');
   const [copiedKey, setCopiedKey] = useState(false);
 
+  // 10-Second Safety Confirmation Modal for Deleting Non-Empty Sections
+  const [deleteWarningModal, setDeleteWarningModal] = useState(null); // { sec: string, count: number }
+  const [deleteCountdown, setDeleteCountdown] = useState(10);
+
+  useEffect(() => {
+    let timer = null;
+    if (deleteWarningModal) {
+      setDeleteCountdown(10);
+      timer = setInterval(() => {
+        setDeleteCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [deleteWarningModal]);
+
   // Semesters for the chosen academic year
   const currentSemesters = useMemo(() => {
     return SEMESTER_STRUCTURE.filter(s => s.year === selectedYear);
@@ -166,10 +189,15 @@ export default function HODStudentsAndClasses() {
       s.section === secToRemove
     );
     if (studentsInSection.length > 0) {
-      if (!window.confirm(`Section ${secToRemove} has ${studentsInSection.length} student(s) enrolled. Removing this section will keep their records but remove the section tab. Proceed?`)) {
-        return;
-      }
+      // Trigger Xiaomi/Redmi style 10-second countdown safety modal
+      setDeleteWarningModal({ sec: secToRemove, count: studentsInSection.length });
+      return;
     }
+    // Empty section: delete immediately
+    confirmDeleteSection(secToRemove);
+  };
+
+  const confirmDeleteSection = (secToRemove) => {
     const remaining = currentSections.filter(s => s !== secToRemove);
     setSectionsByYear(prev => ({
       ...prev,
@@ -178,6 +206,7 @@ export default function HODStudentsAndClasses() {
     if (selectedSection === secToRemove) {
       setSelectedSection(remaining[0]);
     }
+    setDeleteWarningModal(null);
     showToast(`Section ${secToRemove} removed successfully.`, "info");
   };
 
@@ -1917,6 +1946,81 @@ export default function HODStudentsAndClasses() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* PROVISIONED ACCOUNT MODAL */}
+      {deleteWarningModal && (
+        <div className="modal-backdrop" style={{ zIndex: 10000 }}>
+          <div className="modal-dialog" style={{ maxWidth: '440px', border: '2px solid #ef4444', borderRadius: '14px', overflow: 'hidden' }}>
+            <div className="modal-header" style={{ background: '#b91c1c', color: '#ffffff', padding: '1.25rem 1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <AlertTriangle size={22} style={{ color: '#fef08a' }} />
+                <h3 style={{ fontSize: '1.15rem', color: '#ffffff', margin: 0, fontWeight: 700 }}>
+                  Warning: Critical Action
+                </h3>
+              </div>
+              <button 
+                onClick={() => setDeleteWarningModal(null)} 
+                style={{ background: 'none', border: 'none', color: '#fecaca', cursor: 'pointer', fontSize: '1.2rem' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ padding: '1.5rem', background: '#ffffff', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '8px', padding: '0.85rem 1rem', color: '#991b1b', fontSize: '0.86rem', lineHeight: '1.5' }}>
+                You are about to delete <strong>Section {deleteWarningModal.sec}</strong> ({selectedBranch} {selectedYear}).
+                <div style={{ marginTop: '0.4rem', fontWeight: 600 }}>
+                  ⚠️ This section currently contains <u>{deleteWarningModal.count} enrolled student(s)</u>.
+                </div>
+              </div>
+
+              <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0, lineHeight: '1.45' }}>
+                Deleting an active section disrupts roster filters and section attendance registers. Please read the consequences carefully before authorizing this action.
+              </p>
+
+              {deleteCountdown > 0 ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.85rem', fontWeight: 600 }}>
+                  <Clock size={16} className="animate-spin" style={{ color: '#ef4444' }} />
+                  <span>Please read and wait: <strong style={{ color: '#b91c1c', fontSize: '1rem' }}>{deleteCountdown}s</strong></span>
+                </div>
+              ) : (
+                <div style={{ padding: '0.6rem 0.85rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', color: '#166534', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <CheckCircle2 size={16} />
+                  <span>Safety countdown complete. Confirmation button is now active.</span>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer" style={{ padding: '1rem 1.5rem', background: '#f8fafc', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button 
+                type="button" 
+                onClick={() => setDeleteWarningModal(null)} 
+                className="btn btn-outline"
+                style={{ fontWeight: 600 }}
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                disabled={deleteCountdown > 0}
+                onClick={() => confirmDeleteSection(deleteWarningModal.sec)}
+                className="btn btn-primary"
+                style={{
+                  background: deleteCountdown > 0 ? '#fca5a5' : '#dc2626',
+                  borderColor: deleteCountdown > 0 ? '#fca5a5' : '#dc2626',
+                  color: '#ffffff',
+                  cursor: deleteCountdown > 0 ? 'not-allowed' : 'pointer',
+                  opacity: deleteCountdown > 0 ? 0.55 : 1,
+                  transition: 'all 0.2s ease',
+                  fontWeight: 700
+                }}
+              >
+                {deleteCountdown > 0 ? `Wait (${deleteCountdown}s)` : 'I Understand, Delete Section'}
+              </button>
+            </div>
           </div>
         </div>
       )}
